@@ -2,6 +2,8 @@
 #'
 #' Computes the dot product between a vector and one or several other vectors.
 #'
+#' @noRd
+#'
 #' @param a A numeric vector.
 #' @param b A numeric vector or matrix.
 #'
@@ -33,6 +35,8 @@ dot <- function(a, b) {
 #'
 #' Computes the squared Euclidean norm(s) of one or more vectors.
 #'
+#' @noRd
+#'
 #' @param a A numeric vector or matrix.
 #'
 #' @return The squared Euclidean norm of `a` (if `a` is a vector)
@@ -51,31 +55,51 @@ squared_norm <- function(a) {
 #'
 #' Computes the Euclidean norm(s) of one or more vectors.
 #'
+#' @noRd
+#'
 #' @param a A numeric vector or matrix.
 #'
 #' @return The Euclidean norm of `a` (if `a` is a vector)
 #'    or the Euclidean norms of each row of `a` (if `a` is a matrix).
 #'
 #' @examples
+#' norm(c(1, 2, 3))
+#' norm(matrix(rnorm(90), nrow = 9))
 norm <- function(a) {
   sqrt(squared_norm(a))
 }
 #' Normalize vectors to unit length
 #'
+#' @noRd
+#'
 #' @param a A numeric vector or matrix.
 #'
 #' @return `a` scaled to have unit norm (if `a` is a vector) or
 #'    `a` with each row scaled to have unit length (if `a` is a matrix).
-#' @export
+#'
+#' @examples
 #' x <- c(1, 2, 3)
 #' normalize(x)
 #' m <- matrix(rnorm(40), nrow = 10)
-#'
-#' @examples
 normalize <- function(a) {
   if (is.vector(a)) {
     if (isTRUE(all.equal(norm(a), 0))) return(NaN)
     return(a / norm(a))
   }
   apply(a, MARGIN = 1, normalize) |> t()
+}
+#' Find median value in upper triangle
+#'
+#' @noRd
+#'
+#' @param M A square matrix.
+#'
+#' @return The median value in the upper triangle.
+#'
+#' @examples
+#' m <- matrix(rnorm(100), nrow = 10)
+#' find_median(m)
+#' find_median(m + diag(100, 10))
+find_median <- function(M) {
+  stats::median(M[upper.tri(M)])
 }
