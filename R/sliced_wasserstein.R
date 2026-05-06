@@ -53,3 +53,76 @@ sliced_wasserstein <- function(x, y, p = 2, thetas = NULL, L = 50, seed = NULL) 
   }
   (total_cost / L)^(1/p)
 }
+#' Pairwise Wasserstein Distances Along Projection Directions Between Several Empirical Distributions
+#'
+#' This function computes the squared 2-Wasserstein distances between the projections
+#' of several empirical directions along specified projection directions.
+#' The projection directions can optionally be transformed by means of a linear map.
+#' The functions can output the squared distances along each projection direction,
+#' or the squared distances averaged over projection directions.
+#'
+#' @param distributions A list of matrices representing empirical distributions.
+#' @param thetas A matrix, each row of which represents a projection direction.
+#' @param A Optionally, a matrix used to transform each projection direction.
+#' @param verbose If `TRUE`, show progress.
+#' @param keep_projections If `TRUE`, the distance matrix for each projection direction is output.
+#'                         If `FALSE`, the distance matrices for the different projection directions are averaged.
+#'
+#' @return A list of squared-distance matrices, one for each projection direction (if `keep_projections = TRUE`);
+#'         otherwise, a matrix with the averaged squared distances.
+#' @export
+#'
+#' @examples
+#' M1 <- matrix(rnorm(50), ncol = 5)
+#' M2 <- matrix(rnorm(150), ncol = 5)
+#' M3 <- matrix(rnorm(250), ncol = 5)
+#' # Sliced Wasserstein:
+#' my_directions <- generate_directions(20, 5)
+#' compute_all_distances(list(M1, M2, M3), my_directions, keep_projections = FALSE)
+#' # Marginal Wasserstein distances:
+#' marginal_wass <- compute_all_distances(list(M1, M2, M3), diag(1, 5), keep_projections = TRUE)
+#' marginal_wass[[3]] # along third dimension
+compute_all_distances <- function(
+    distributions, thetas, A = NULL, verbose = TRUE, keep_projections = TRUE
+) {
+  d <- ncol(thetas)
+  L <- nrow(thetas)
+  N <- length(distributions)
+
+  if (!is.null(A)) {
+    if (verbose) message("Transforming projection directions...")
+    thetas <- thetas %*% A
+  }
+
+  if (verbose) message("Projecting distributions...")
+  projections <- lapply(distributions, project_and_sort, thetas)
+
+  if (verbose) {
+    message("Computing sliced Wasserstein distances...")
+    pb <- utils::txtProgressBar(min = 0, max = L, style = 3)
+  }
+
+  distance_list <- vector("list", L)
+  for (ell in 1:L) {
+
+    distance_matrix <- matrix(0, nrow = N, ncol = N)
+    for (i in 1:(N-1)) {
+      for (j in (i+1):N) {
+        current_distance <- nw_corner_distance(projections[[i]][, ell], projections[[j]][, ell], presorted = TRUE)^2
+        distance_matrix[i, j] <- current_distance
+        distance_matrix[j, i] <- current_distance
+      }
+    }
+    distance_list[[ell]] <- distance_matrix
+    if (verbose) utils::setTxtProgressBar(pb, ell)
+  }
+  if (verbose) cat("\n")
+
+  if (keep_projections) return(distance_list)
+
+  M <- matrix(0, nrow = N, ncol = N)
+  for (ell in seq_len(L)) {
+    M <- M + distance_list[[ell]]
+  }
+  M / L
+}
