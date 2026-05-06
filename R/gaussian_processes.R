@@ -37,7 +37,7 @@ gpr_predict <- function(Kxx, Kxstar, y_train, centre = TRUE, lambda2 = 1e-6) {
   U <- tryCatch(
     chol(Kxx + lambda2 * diag(n)),
     error = function(e) {
-      message("Cholesky decomposition unsuccessful. Trying jitter (lambda2) escalation.")
+      warning("Cholesky decomposition unsuccessful. Trying jitter (lambda2) escalation.")
       for (multiplier in c(10, 100, 1000, 10000)) {
         result <- tryCatch(
           chol(Kxx + (lambda2 * multiplier) * diag(n)),
