@@ -103,3 +103,21 @@ normalize <- function(a) {
 find_median <- function(M) {
   stats::median(M[upper.tri(M)])
 }
+
+#' Sorted projections of a data matrix.
+#'
+#' @param M n by d matrix representing an empirical distribution.
+#' @param thetas L by d matrix representing projection directions.
+#'
+#' @return An n by L matrix, the i-th column of which is the sorted
+#'         empirical distribution of the projection of M onto the i-th
+#'         row of thetas.
+#'
+#' @examples
+#' my_data <- matrix(rnorm(100), ncol = 5)
+#' directions <- generate_directions(50, 5)
+#' project_and_sort(my_data, directions)
+project_and_sort <- function(M, thetas) {
+  thetas <- t(thetas)
+  apply(M %*% thetas, 2, sort)
+}
