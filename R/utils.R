@@ -122,3 +122,13 @@ project_and_sort <- function(M, thetas) {
   thetas <- t(thetas)
   apply(M %*% thetas, 2, sort)
 }
+#' Compute the Trace of a Matrix
+#'
+#' @noRd
+#'
+#' @param M A matrix.
+#'
+#' @return The trace of M.
+matrix_trace <- function(M) {
+  sum(diag(M))
+}
