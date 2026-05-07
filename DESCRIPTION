@@ -1,12 +1,15 @@
 Package: slicer
-Title: Sliced Wasserstein Distances and Kernels
+Title: Sliced Wasserstein Distances for Regression
 Version: 0.0.0.9000
 Authors@R: 
     person("Jan", "Vanhove", , "janvanhove@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-4607-4836"))
-Description: Functions for computing Wasserstein and sliced Wasserstein distances
-    between empirical distributions as well as kernels derived from them. 
-    Includes functions for fitting Gaussian processes using these kernels.
+Description: Wasserstein and sliced Wasserstein distances between empirical 
+    distributions as well as kernels derived from them. 
+    Includes functions for fitting Gaussian process regression using 
+    these kernels.
+URL: https://github.com/janhove/slicer
+BugReports: https://github.com/janhove/slicer/issues
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
