@@ -374,3 +374,68 @@ fit_gpr <- function(
     lambda2 = lambda2
   )
 }
+#' Gaussian Process Fitting to Test Data Using Multiple Kernels with Tuned Hyperparameters
+#'
+#' This is the counterpart to \link{fit_gpr} when multiple squared-distance
+#' matrices are available. A kernel is then built as a linear combination
+#' of base Gaussian RBF kernels. The hyperparameters are tuned by minimising
+#' the model's negative marginal log-likelihood on the training data.
+#'
+#' @param D2_list A list of matrices containing squared pairwise distances between all objects.
+#' @param training_idx A vector with the row (and column) numbers corresponding to the training entries in `D2`.
+#' @param test_idx A vector with the row (and column) numbers corresponding to the test entries in `D2`.
+#' @param y_train A vector with the training outcomes.
+#' @param y_test Optionally, a vector with the test outcomes.
+#' @param centre If `TRUE`, the training outcomes are centred around their mean before fitting the model. The mean is then added back to the predictions at the end.
+#' @param use_gradient If `TRUE`, closed-form expressions for the RBF's gradient are used.
+#'                     Else, the optimiser uses the finite-differences method.
+#' @param runs Number of independent attempts to find a minimum when optimising the hyperparameters.
+#' @param verbose If `TRUE`, progress is shown on the console.
+#'
+#' @return A list containing the predictions for the test objects,
+#'     the root mean squared error (if the true test outcomes are provided),
+#'     and the tuned hyperparameter values.
+#' @export
+#'
+#' @examples
+#' N1 <- 25
+#' N2 <- 10
+#' x_train1 <- runif(N1, -pi, pi)
+#' x_train2 <- runif(N1, 0, 1)
+#' x_test1  <- runif(N2, -pi, pi)
+#' x_test2  <- runif(N2, 0, 1)
+#' y_train <- x_train2 * plogis(x_train1) * cos(x_train1)
+#' y_test <- x_test2 * plogis(x_test1) * cos(x_test1)
+#' D2_1 <- outer(c(x_train1, x_test1), c(x_train1, x_test1), "-")^2
+#' D2_2 <- outer(c(x_train2, x_test2), c(x_train2, x_test2), "-")^2
+#' fit <- fit_gpr_multiple(list(D2_1, D2_2), seq_len(N1), N1 + seq_len(N2), y_train, y_test, runs = 50)
+#' plot(fit$test_predictions, y_test)
+#' fit$RMSE
+fit_gpr_multiple <- function(
+    D2_list, training_idx, test_idx, y_train, y_test,
+    centre = TRUE, use_gradient = TRUE, runs = 10, verbose = TRUE) {
+  select_entries <- function(M, idx) {
+    M[idx, idx]
+  }
+  D2_train_list <- lapply(D2_list, select_entries, training_idx)
+  params <- find_gpr_hyperparameters_multiple(
+    D2_train_list, y_train, centre = centre, use_gradient = use_gradient,
+    runs = runs, verbose = verbose
+  )
+  variance <- params$variance
+  length_scale <- params$length_scale
+  lambda2 <- params$lambda2
+
+  my_kernel <- rbf_multiple(D2_list, length_scales = length_scale, variances = variance)
+  Kxx <- my_kernel[training_idx, training_idx]
+  Kxstar <- my_kernel[test_idx, training_idx]
+  predictions <- gpr_predict(Kxx, Kxstar, y_train, centre = centre, lambda2 = lambda2)
+
+  list(
+    test_predictions = predictions,
+    RMSE = sqrt(mean((predictions - y_test)^2)),
+    length_scale = length_scale,
+    variance = variance,
+    lambda2 = lambda2
+  )
+}
