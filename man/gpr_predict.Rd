@@ -37,5 +37,6 @@ Kxx    <- kernel[1:N1, 1:N1]
 Kxstar <- kernel[(N1+1):(N1+N2), 1:N1]
 y_train <- ifelse(x_train == 0, 2*pi, sin(2*pi*x_train) / x_train)
 curve(sin(2*pi*x)/x, from = -pi, to = pi)
+points(x_train, y_train)
 points(x_test, gpr_predict(Kxx, Kxstar, y_train), pch = 16)
 }
