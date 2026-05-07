@@ -185,8 +185,10 @@ find_gpr_hyperparameters <- function(
     }
 
     if (!is.null(fit) && (is.null(best) || fit$value < best$value)) {
+      if (verbose && !is.null(best)) message(paste0("Current optimum improved from ",
+        round(best$value, options()$digits), " to ",
+        round(fit$value, options()$digits), "."))
       best <- fit
-      if (verbose) message("Current optimum improved.")
     }
   }
 
@@ -298,8 +300,10 @@ find_gpr_hyperparameters_multiple <- function(
     }
 
     if (!is.null(fit) && (is.null(best) || fit$value < best$value)) {
+      if (verbose && !is.null(best)) message(paste0("Current optimum improved from ",
+        round(best$value, options()$digits), " to ",
+        round(fit$value, options()$digits), "."))
       best <- fit
-      if (verbose) message("Current optimum improved.")
     }
   }
 
@@ -308,5 +312,65 @@ find_gpr_hyperparameters_multiple <- function(
     length_scale = exp(best$par[(L+1):(2*L)]),
     lambda2 = exp(best$par[2*L + 1]),
     nll = best$value
+  )
+}
+#' Gaussian Process Fitting to Test Data with Tuned Hyperparameters
+#'
+#' This function generates predictions using a Gaussian process model
+#' with a Gaussian RBF kernel. The hyperparameters are tuned using the
+#' training data by minimising the model's negative marginal log-likelihood.
+#'
+#' @param D2 A matrix containing squared pairwise distances between all objects.
+#' @param training_idx A vector with the row (and column) numbers corresponding to the training entries in `D2`.
+#' @param test_idx A vector with the row (and column) numbers corresponding to the test entries in `D2`.
+#' @param y_train A vector with the training outcomes.
+#' @param y_test Optionally, a vector with the test outcomes.
+#' @param centre If `TRUE`, the training outcomes are centred around their mean before fitting the model. The mean is then added back to the predictions at the end.
+#' @param use_gradient If `TRUE`, closed-form expressions for the RBF's gradient are used.
+#'                     Else, the optimiser uses the finite-differences method.
+#' @param runs Number of independent attempts to find a minimum when optimising the hyperparameters.
+#' @param verbose If `TRUE`, progress is shown on the console.
+#'
+#' @return A list containing the predictions for the test objects,
+#'     the root mean squared error (if the true test outcomes are provided),
+#'     and the three tuned hyperparameter values.
+#' @export
+#'
+#' @examples
+#' N1 <- 25
+#' N2 <- 10
+#' x_train <- seq(-pi, pi, length.out = N1)
+#' x_test  <- runif(N2, -pi, pi)
+#' y_train <- x_train * plogis(x_train) * cos(x_train)
+#' y_test <- x_test * plogis(x_test) * cos(x_test)
+#' D2 <- outer(c(x_train, x_test), c(x_train, x_test), "-")^2
+#' fit <- fit_gpr(D2, seq_len(N1), N1 + seq_len(N2), y_train, y_test, runs = 50)
+#' curve(x * plogis(x) * cos(x), -pi, pi)
+#' points(x_train, y_train, pch = 1)
+#' points(x_test, fit$test_predictions, pch = 16)
+#' fit$RMSE
+fit_gpr <- function(
+    D2, training_idx, test_idx, y_train, y_test = NULL,
+    centre = TRUE, use_gradient = TRUE, runs = 10, verbose = TRUE) {
+  D2_train <- D2[training_idx, training_idx]
+  params <- find_gpr_hyperparameters(
+    D2_train, y_train, centre = centre, use_gradient = use_gradient,
+    runs = runs, verbose = verbose
+  )
+  variance <- params$variance
+  length_scale <- params$length_scale
+  lambda2 <- params$lambda2
+
+  my_kernel <- rbf(D2, length_scale = length_scale, variance = variance)
+  Kxx <- my_kernel[training_idx, training_idx]
+  Kxstar <- my_kernel[test_idx, training_idx]
+  predictions <- gpr_predict(Kxx, Kxstar, y_train, centre = centre, lambda2 = lambda2)
+
+  list(
+    test_predictions = predictions,
+    RMSE = if (is.null(y_test)) NA else sqrt(mean((predictions - y_test)^2)),
+    length_scale = length_scale,
+    variance = variance,
+    lambda2 = lambda2
   )
 }
