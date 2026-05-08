@@ -41,8 +41,15 @@ M2 <- matrix(rnorm(150), ncol = 5)
 M3 <- matrix(rnorm(250), ncol = 5)
 # Sliced Wasserstein:
 my_directions <- generate_directions(20, 5)
-compute_all_distances(list(M1, M2, M3), my_directions, keep_projections = FALSE)
+compute_all_distances(list(M1, M2, M3), my_directions,
+  keep_projections = FALSE, verbose = FALSE)
 # Marginal Wasserstein distances:
-marginal_wass <- compute_all_distances(list(M1, M2, M3), diag(1, 5), keep_projections = TRUE)
+marginal_wass <- compute_all_distances(list(M1, M2, M3), diag(1, 5),
+  keep_projections = TRUE, verbose = FALSE)
 marginal_wass[[3]] # along third dimension
+# Reweight projection directions
+A <- diag(c(4, 0.5, 3, 2, 1))
+shear_wass <- compute_all_distances(list(M1, M2, M3), diag(1, 5), A = A,
+  keep_projections = TRUE, verbose = FALSE)
+shear_wass[[3]]
 }
