@@ -412,7 +412,7 @@ fit_gpr <- function(
 #' plot(fit$test_predictions, y_test)
 #' fit$RMSE
 fit_gpr_multiple <- function(
-    D2_list, training_idx, test_idx, y_train, y_test,
+    D2_list, training_idx, test_idx, y_train, y_test = NULL,
     centre = TRUE, use_gradient = TRUE, runs = 10, verbose = TRUE) {
   select_entries <- function(M, idx) {
     M[idx, idx]
@@ -433,7 +433,7 @@ fit_gpr_multiple <- function(
 
   list(
     test_predictions = predictions,
-    RMSE = sqrt(mean((predictions - y_test)^2)),
+    RMSE = if (is.null(y_test)) NA else sqrt(mean((predictions - y_test)^2)),
     length_scale = length_scale,
     variance = variance,
     lambda2 = lambda2

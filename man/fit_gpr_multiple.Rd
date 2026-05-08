@@ -9,7 +9,7 @@ fit_gpr_multiple(
   training_idx,
   test_idx,
   y_train,
-  y_test,
+  y_test = NULL,
   centre = TRUE,
   use_gradient = TRUE,
   runs = 10,
