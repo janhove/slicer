@@ -8,7 +8,7 @@ Description: Wasserstein and sliced Wasserstein distances between empirical
     distributions as well as kernels derived from them. 
     Includes functions for fitting Gaussian process regression using 
     these kernels.
-URL: https://github.com/janhove/slicer
+URL: https://github.com/janhove/slicer, https://janhove.github.io/slicer/
 BugReports: https://github.com/janhove/slicer/issues
 License: MIT + file LICENSE
 Encoding: UTF-8

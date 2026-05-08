@@ -23,6 +23,10 @@ You can install the development version of slicer from
 pak::pak("janhove/slicer")
 ```
 
+## Documentation
+
+See <https://janhove.github.io/slicer> for documentation.
+
 ## Use
 
 Refer to the vignette for a brief tutorial.
