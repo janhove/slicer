@@ -18,3 +18,7 @@ Imports:
     MASS,
     stats,
     utils
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
