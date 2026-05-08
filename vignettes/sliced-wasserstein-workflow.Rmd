@@ -1,6 +1,11 @@
 ---
-title: "sliced-wasserstein-workflow"
-output: rmarkdown::html_vignette
+title: "(Sliced) Wasserstein - Gaussian process regression workflow"
+output:
+  rmarkdown::html_vignette:
+    fig_width: 7
+    fig_height: 5
+    fig_align: "center"
+    dev: svg
 vignette: >
   %\VignetteIndexEntry{sliced-wasserstein-workflow}
   %\VignetteEngine{knitr::rmarkdown}
@@ -14,6 +19,177 @@ knitr::opts_chunk$set(
 )
 ```
 
+## Goal
+This vignette illustrates the main use of the `slicer` package
+by means of a toy example.
+Empirical distributions are generated from bivariate Gaussian mixtures 
+with four isotropic components laid out symmetrically around the origin.
+These distributions differ from one another in that they are rotated
+counterclockwise by an angle $\omega \in [0, \pi/2)$.
+The goal of the analysis is to retrieve the specific angles by which
+the distributions have been rotated.
+
+## Functions
+Let's load `slicer`.
 ```{r setup}
 library(slicer)
 ```
+
+To generate the input distributions, we define `generate_data()`:
+```{r}
+generate_data <- function(n = 200, a = 5, angle = 0, Sigma = diag(1, 2)) {
+  mus <- cbind(c(a, 0), c(0, a), c(-a, 0), c(0, -a))
+  R <- rbind(
+    c(cos(angle), -sin(angle)),
+    c(sin(angle), cos(angle))
+  )
+  cluster <- sample(1:4, size = n, replace = TRUE)
+  d <- matrix(0, nrow = n, ncol = 2)
+  for (i in 1:4) {
+    d[which(cluster == i), ] <- MASS::mvrnorm(
+      sum(cluster == i), mu = mus[, i], Sigma = Sigma
+    )
+  }
+  d %*% t(R)
+}
+```
+
+The plots below show two empirical distributions,
+once using a rotation angle of $\omega = \pi/16$ and once using 
+one of $\omega = 3\pi/8$.
+
+```{r}
+#| fig.width = 9
+set.seed(2026) # for reproducibility
+
+op <- par(no.readonly = TRUE)
+par(mfrow = c(1, 2))
+generate_data(angle = pi/16) |> 
+  plot(xlab = "first dimension", ylab = "second dimension")
+generate_data(angle = 3*pi/8) |> 
+  plot(xlab = "first dimension", ylab = "second dimension")
+par(op)
+```
+
+Finally, a function for computing the root mean squared error of the predictions:
+```{r}
+rmse <- function(predictions, true_values) {
+  sqrt(mean((predictions - true_values)^2))
+}
+```
+
+
+## Data generation
+We generate 60 matrices (40 for training, 20 for testing) 
+containing empirical distributions
+with the rotation angles sampled uniformly from $[0, \pi/4)$.
+Each empirical distribution is based on 200 data points.
+
+```{r}
+sample_size <- 200
+N_train <- 40
+N_test  <- 20
+angle_range <- c(0, pi/4)
+
+angles <- runif(N_train + N_test, angle_range[1], angle_range[2])
+
+distributions <- vector("list", N_train + N_test)
+for (i in seq_len(N_train + N_test)) {
+  distributions[[i]] <- generate_data(angle = angles[i])
+}
+```
+
+## Distances
+We can use `compute_all_distances()` to compute pairwise distances
+between all 60 input distributions.
+(Technically, we don't really need the pairwise distances between
+the twenty inputs used for testing.)
+To compute **sliced Wasserstein distances**, we need to first generate
+$\theta_1, \dots, \theta_L$ sampled uniformly at random from the unit sphere;
+`generate_directions()` takes care of this.
+We'll use $L = 25$ and set $d = 2$ since we're working in two dimensions.
+If we're only interested in the estimated sliced Wasserstein distances,
+we can set `keep_projections` to `FALSE`.
+
+```{r}
+thetas <- generate_directions(L = 25, d = 2)
+sw_distances <- compute_all_distances(distributions, thetas, verbose = FALSE,
+    keep_projections = FALSE)
+```
+
+The $60 \times 60$ matrix `sw_distances` contains the _squared_ (estimated)
+sliced Wasserstein distances between the forty empirical distributions.
+
+We can also compute (normal) **Wasserstein distances** between 
+the distributions when they are projected along certain dimensions.
+For instances, to compute the pairwise Wasserstein distances along
+the first margin and along the second margin, we set the 
+projection directions to $e_1 = (1, 0)^{\top}$ and $e_2 = (0, 1)^{\top}$.
+We also set `keep_projections = TRUE`, which will cause the function to
+output a list of two matrices with _squared_ Wasserstein distances:
+one for each margin.
+
+```{r}
+marginal_distances <- compute_all_distances(distributions, diag(1, 2), 
+    verbose = FALSE, keep_projections = TRUE)
+str(marginal_distances)
+```
+
+## Gaussian process models with tuned hyperparameters
+The function `fit_gpr()` takes a single matrix with squared pairwise 
+distances and uses it as input to a Gaussian process regression model
+with a Gaussian RBF kernel. The model's and the kernel's hyperparameters
+are tuned using the training data by minimising the negative
+marginal log-likelihood. 
+
+```{r}
+sw_fit <- fit_gpr(sw_distances,
+  training_idx = seq_len(N_train),
+  test_idx = N_train + seq_len(N_test),
+  y_train = angles[seq_len(N_train)], 
+  verbose = TRUE)
+```
+
+The output consists of predictions for the test data,
+the root mean squared error of these predictions (if the true test outcomes
+were provided), and the estimated hyperparameters.
+
+```{r}
+str(sw_fit)
+plot(angles[N_train + seq_len(N_test)], sw_fit$test_predictions,
+     xlab = "true test outcomes", ylab = "predicted test outcomes")
+rmse(sw_fit$test_predictions, angles[N_train + seq_len(N_test)])
+```
+
+When multiple matrices with squared distances are provided,
+the function `fit_gpr_multiple()` can be used.
+Now, estimated length-scale and (kernel) variance hyperparameters
+are provided for the Gaussian RBF corresponding to each squared distance matrix.
+
+```{r}
+marginal_fit <- fit_gpr_multiple(marginal_distances,
+  training_idx = seq_len(N_train),
+  test_idx = N_train + seq_len(N_test),
+  y_train = angles[seq_len(N_train)], 
+  verbose = TRUE)
+str(marginal_fit)
+plot(angles[N_train + seq_len(N_test)], marginal_fit$test_predictions,
+     xlab = "true test outcomes", ylab = "predicted test outcomes")
+rmse(marginal_fit$test_predictions, angles[N_train + seq_len(N_test)])
+```
+
+We can combine the marginal and sliced Wasserstein distances into a list with
+three distance matrices, too:
+
+```{r}
+total_fit <- fit_gpr_multiple(list(sw_distances, marginal_distances[[1]], marginal_distances[[2]]),
+  training_idx = seq_len(N_train),
+  test_idx = N_train + seq_len(N_test),
+  y_train = angles[seq_len(N_train)], 
+  verbose = TRUE)
+str(total_fit)
+plot(angles[N_train + seq_len(N_test)], total_fit$test_predictions,
+     xlab = "true test outcomes", ylab = "predicted test outcomes")
+rmse(total_fit$test_predictions, angles[N_train + seq_len(N_test)])
+```
+
