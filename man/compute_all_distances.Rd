@@ -25,7 +25,7 @@ compute_all_distances(
 If \code{FALSE}, the distance matrices for the different projection directions are averaged.}
 }
 \value{
-A list of squared-distance matrices, one for each projection direction (if \code{keep_projections = TRUE});
+If \code{keep_projections = TRUE}, a list of squared-distance matrices, one for each projection direction;
 otherwise, a matrix with the averaged squared distances.
 }
 \description{

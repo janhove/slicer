@@ -68,7 +68,7 @@ sliced_wasserstein <- function(x, y, p = 2, thetas = NULL, L = 50, seed = NULL) 
 #' @param keep_projections If `TRUE`, the distance matrix for each projection direction is output.
 #'                         If `FALSE`, the distance matrices for the different projection directions are averaged.
 #'
-#' @return A list of squared-distance matrices, one for each projection direction (if `keep_projections = TRUE`);
+#' @return If `keep_projections = TRUE`, a list of squared-distance matrices, one for each projection direction;
 #'         otherwise, a matrix with the averaged squared distances.
 #' @export
 #'
