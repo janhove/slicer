@@ -267,11 +267,11 @@ str(total_fit)
 #> List of 5
 #>  $ test_predictions: num [1:20] 0.247 0.69 0.247 0.549 0.085 ...
 #>  $ RMSE            : logi NA
-#>  $ length_scale    : Named num [1:3] 0.421 3.835 5.486
+#>  $ length_scale    : Named num [1:3] 0.421 3.836 5.488
 #>   ..- attr(*, "names")= chr [1:3] "length_scale1" "length_scale2" "length_scale3"
-#>  $ variance        : Named num [1:3] 0.00117 0.24741 0.12475
+#>  $ variance        : Named num [1:3] 0.00117 0.24746 0.12484
 #>   ..- attr(*, "names")= chr [1:3] "variance1" "variance2" "variance3"
-#>  $ lambda2         : Named num 3.31e-08
+#>  $ lambda2         : Named num 3.32e-08
 #>   ..- attr(*, "names")= chr "lambda2"
 plot(angles[N_train + seq_len(N_test)], total_fit$test_predictions,
      xlab = "true test outcomes", ylab = "predicted test outcomes")
@@ -282,5 +282,5 @@ plot(angles[N_train + seq_len(N_test)], total_fit$test_predictions,
 ``` r
 
 rmse(total_fit$test_predictions, angles[N_train + seq_len(N_test)])
-#> [1] 0.04697932
+#> [1] 0.0469791
 ```
