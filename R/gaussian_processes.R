@@ -91,75 +91,54 @@ find_gpr_hyperparameters <- function(
     y_train <- y_train - mean(y_train)
   }
 
-  med <- find_median(D2[1:n, 1:n]) |> sqrt()
+  med <- find_median(D2) |> sqrt()
 
   # Cacheing -------------------------------------------------------------------
   last_log_params <- NULL
-  last_K <- NULL
+  last_K_rbf <- NULL
   last_U <- NULL
   last_a <- NULL
 
   # Auxiliary functions --------------------------------------------------------
-
   # Look up/set in cache. After the nll() call, gradient() will call the same
   # log_params; we can save some costly computations by storing their results.
-  nll <- function(log_params) {
-    if (!identical(log_params, last_log_params)) {
-
-      va <- exp(log_params[1])
-      ls <- exp(log_params[2])
-      lambda2 <- exp(log_params[3])
-
-      K <- rbf(D2, length_scale = ls, variance = 1)
-      K_reg <- va * K + lambda2 * diag(n)
-
-      U <- tryCatch(chol(K_reg), error = function(e) NULL)
-      if (is.null(U)) return(Inf)
-
-      a <- backsolve(U, backsolve(U, y_train, transpose = TRUE))
-
-      # Update cache
-      last_log_params <<- log_params
-      last_K <<- K
-      last_U <<- U
-      last_a <<- a
+  update_cache <- function(log_params) {
+    if (identical(log_params, last_log_params)) return(invisible(NULL))
+    va <- exp(log_params[1])
+    ls  <- exp(log_params[2])
+    lambda2 <- exp(log_params[3])
+    K_rbf <- rbf(D2, length_scale = ls, variance = 1)
+    K <- va * K_rbf + lambda2 * diag(n)
+    last_U <<- tryCatch(chol(K), error = function(e) NULL)
+    if (!is.null(last_U)) {
+      last_a <<- backsolve(last_U, backsolve(last_U, y_train, transpose = TRUE))
+      last_K_rbf <<- K_rbf
     }
+    last_log_params <<- log_params
+  }
 
-    0.5 * crossprod(y_train, last_a) + sum(log(diag(last_U))) + n/2 * log(2 * pi)
+
+  nll <- function(log_params) {
+    update_cache(log_params)
+    if (is.null(last_U)) return(Inf)
+    drop(0.5 * crossprod(y_train, last_a) + sum(log(diag(last_U))) + n/2 * log(2 * pi))
   }
 
   gradient <- function(log_params) {
-    if (!identical(log_params, last_log_params)) {
-      va <- exp(log_params[1])
-      ls <- exp(log_params[2])
-      lambda2 <- exp(log_params[3])
-
-      K <- rbf(D2, length_scale = ls, variance = 1)
-      K_reg <- va * K + lambda2 * diag(n)
-
-      U <- tryCatch(chol(K_reg), error = function(e) NULL)
-      if (is.null(U)) return(Inf)
-
-      a <- backsolve(U, backsolve(U, y_train, transpose = TRUE))
-
-      # Update cache
-      last_log_params <<- log_params
-      last_K <<- K
-      last_U <<- U
-      last_a <<- a
-    }
+    update_cache(log_params)
+    if (is.null(last_U)) return(rep(Inf, 3))
 
     va <- exp(log_params[1])
     ls <- exp(log_params[2])
     lambda2 <- exp(log_params[3])
-    part_sigma2 <- va * last_K
-    part_lengthscale <- va * D2 / ls^2 * last_K
-    part_lambda2 <- diag(lambda2, n)
 
-    jacobian <- vector("numeric", length = 3L)
-    jacobian[[1]] <- -0.5 * (crossprod(last_a, part_sigma2 %*% last_a) - matrix_trace(backsolve(last_U, backsolve(last_U, part_sigma2, transpose = TRUE))))
-    jacobian[[2]] <- -0.5 * (crossprod(last_a, part_lengthscale %*% last_a) - matrix_trace(backsolve(last_U, backsolve(last_U, part_lengthscale, transpose = TRUE))))
-    jacobian[[3]] <- -0.5 * (crossprod(last_a, part_lambda2 %*% last_a) - matrix_trace(backsolve(last_U, backsolve(last_U, part_lambda2, transpose = TRUE))))
+    W <- chol2inv(last_U)
+
+    jacobian <- numeric(3)
+    DK <- va * last_K_rbf
+    jacobian[[1]] <- -0.5 * (drop(last_a %*% DK %*% last_a) - sum(W * DK))
+    jacobian[[2]] <- -0.5 * (drop(last_a %*% (DK * D2 / ls^2) %*% last_a) - sum(W * DK * D2 / ls^2))
+    jacobian[[3]] <- -0.5 * lambda2 * (drop(last_a %*% last_a) - sum(diag(W)))
 
     jacobian
   }
@@ -226,56 +205,49 @@ find_gpr_hyperparameters_multiple <- function(
   last_a <- NULL
 
   # Auxiliary functions --------------------------------------------------------
-  nll <- function(log_params) {
-    if (!identical(log_params, last_log_params)) {
-      va <- exp(log_params[1:L])
-      ls <- exp(log_params[(L+1):(2*L)])
-      lambda2 <- exp(log_params[2*L + 1])
-      K <- matrix(0, ncol = n, nrow = n)
-      for (ell in 1:L) {
-        last_K_list[[ell]] <<- rbf(D2_list[[ell]], variance = 1, length_scale = ls[[ell]])
-        K <- K + va[[ell]] * last_K_list[[ell]]
-      }
-      K <- K + lambda2 * diag(n)
-      last_U <<- tryCatch(chol(K), error = function(e) NULL)
-      if (is.null(last_U)) return(Inf)
+  update_cache <- function(log_params) {
+    if (identical(log_params, last_log_params)) return(invisible(NULL))
+    va_vec <- exp(log_params[1:L])
+    ls_vec  <- exp(log_params[(L+1):(2*L)])
+    lambda2 <- exp(log_params[2*L + 1])
+    K <- Reduce(`+`, mapply(function(K_l, va, ls)
+      va * rbf(K_l, variance = 1, length_scale = ls),
+      D2_list, va_vec, ls_vec, SIMPLIFY = FALSE))
+    K <- K + lambda2 * diag(n)
+    last_U <<- tryCatch(chol(K), error = function(e) NULL)
+    if (!is.null(last_U)) {
       last_a <<- backsolve(last_U, backsolve(last_U, y_train, transpose = TRUE))
-      last_log_params <<- log_params
+      last_K_list <<- mapply(function(K_l, ls)
+        rbf(K_l, variance = 1, length_scale = ls),
+        D2_list, ls_vec, SIMPLIFY = FALSE)
     }
+    last_log_params <<- log_params
+  }
 
-    0.5 * crossprod(y_train, last_a) + sum(log(diag(last_U))) + n/2 * log(2 * pi)
+  nll <- function(log_params) {
+    update_cache(log_params)
+    if (is.null(last_U)) return(Inf)
+    drop(0.5 * crossprod(y_train, last_a) + sum(log(diag(last_U))) + n/2 * log(2 * pi))
   }
 
   gradient <- function(log_params) {
+    update_cache(log_params)
+    if (is.null(last_U)) return(rep(Inf, 2*L + 1))
+
     va_vec <- exp(log_params[1:L])
     ls_vec <- exp(log_params[(L+1):(2*L)])
     lambda2 <- exp(log_params[2*L + 1])
 
-    if (!identical(log_params, last_log_params)) {
-      K <- matrix(0, ncol = n, nrow = n)
-      for (ell in 1:L) {
-        last_K_list[[ell]] <<- rbf(D2_list[[ell]], variance = 1, length_scale = ls_vec[[ell]])
-        K <- K + va_vec[[ell]] * last_K_list[[ell]]
-      }
-      K <- K + lambda2 * diag(n)
-      last_U <<- tryCatch(chol(K), error = function(e) NULL)
-      if (is.null(last_U)) return(Inf)
-      last_a <<- backsolve(last_U, backsolve(last_U, y_train, transpose = TRUE))
-      last_log_params <<- log_params
-    }
+    W <- chol2inv(last_U)
 
-    jacobian <- vector("numeric", 2*L)
+    jacobian <- numeric(2*L + 1)
     for (ell in 1:L) {
-      va <- va_vec[[ell]]
-      ls <- ls_vec[[ell]]
-      part_sigma2 <- va * last_K_list[[ell]]
-      part_lengthscale <- va * D2_list[[ell]] / ls^2 * last_K_list[[ell]]
-
-      jacobian[[ell]] <- -0.5 * (crossprod(last_a, part_sigma2 %*% last_a) - matrix_trace(backsolve(last_U, backsolve(last_U, part_sigma2, transpose = TRUE))))
-      jacobian[[L + ell]] <- -0.5 * (crossprod(last_a, part_lengthscale %*% last_a) - matrix_trace(backsolve(last_U, backsolve(last_U, part_lengthscale, transpose = TRUE))))
+      DK <- last_K_list[[ell]] * va_vec[[ell]]
+      jacobian[[ell]]     <- -0.5 * (drop(last_a %*% DK %*% last_a) - sum(W * DK))
+      jacobian[[L + ell]] <- -0.5 * (drop(last_a %*% (DK * D2_list[[ell]] / ls_vec[[ell]]^2) %*% last_a) - sum(W * DK * D2_list[[ell]] / ls_vec[[ell]]^2))
     }
-    part_lambda2 <- diag(lambda2, n)
-    jacobian[[2 * L + 1]] <-  -0.5 * (crossprod(last_a, part_lambda2 %*% last_a) - matrix_trace(backsolve(last_U, backsolve(last_U, part_lambda2, transpose = TRUE))))
+    jacobian[[2*L + 1]] <- -0.5 * lambda2 * (drop(last_a %*% last_a) - sum(diag(W)))
+
     jacobian
   }
 
