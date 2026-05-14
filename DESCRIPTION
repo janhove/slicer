@@ -16,6 +16,7 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 8.0.0
 Imports: 
     MASS,
+    parallel,
     Rcpp,
     stats,
     utils

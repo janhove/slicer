@@ -12,12 +12,13 @@ fit_gpr(
   y_test = NULL,
   centre = TRUE,
   use_gradient = TRUE,
-  runs = 10,
+  runs = 10L,
+  cores = 1L,
   verbose = TRUE
 )
 }
 \arguments{
-\item{D2}{A matrix containing squared pairwise distances between all objects.}
+\item{D2}{A matrix, or a list of matrices, containing squared pairwise distances between all objects.}
 
 \item{training_idx}{A vector with the row (and column) numbers corresponding to the training entries in \code{D2}.}
 
@@ -34,19 +35,43 @@ Else, the optimiser uses the finite-differences method.}
 
 \item{runs}{Number of independent attempts to find a minimum when optimising the hyperparameters.}
 
-\item{verbose}{If \code{TRUE}, progress is shown on the console.}
+\item{cores}{Number of cores used for parallel processing.}
+
+\item{verbose}{If \code{TRUE}, progress is shown on the console. Only works if \code{cores == 1L}.}
 }
 \value{
 A list containing the predictions for the test objects,
 the root mean squared error (if the true test outcomes are provided),
-and the three tuned hyperparameter values.
+the tuned hyperparameter values, and the negative log marginal likelihood (nll).
 }
 \description{
 This function generates predictions using a Gaussian process model
-with a Gaussian RBF kernel. The hyperparameters are tuned using the
+with one or several Gaussian RBF kernels. The hyperparameters are tuned using the
 training data by minimising the model's negative marginal log-likelihood.
 }
 \examples{
+# Multiple kernels
+N1 <- 25
+N2 <- 10
+x_train1 <- runif(N1, -pi, pi)
+x_train2 <- runif(N1, 0, 1)
+x_test1  <- runif(N2, -pi, pi)
+x_test2  <- runif(N2, 0, 1)
+y_train <- x_train2 * plogis(x_train1) * cos(x_train1)
+y_test <- x_test2 * plogis(x_test1) * cos(x_test1)
+D2_1 <- outer(c(x_train1, x_test1), c(x_train1, x_test1), "-")^2
+D2_2 <- outer(c(x_train2, x_test2), c(x_train2, x_test2), "-")^2
+# Single core
+fit <- fit_gpr(list(D2_1, D2_2), seq_len(N1), N1 + seq_len(N2),
+  y_train, y_test, runs = 50)
+plot(fit$test_predictions, y_test)
+fit
+# Multiple cores
+fit <- fit_gpr(list(D2_1, D2_2), seq_len(N1), N1 + seq_len(N2),
+  y_train, y_test, runs = 50, cores = 2)
+fit
+
+# Single kernel
 N1 <- 25
 N2 <- 10
 x_train <- seq(-pi, pi, length.out = N1)
@@ -54,7 +79,8 @@ x_test  <- runif(N2, -pi, pi)
 y_train <- x_train * plogis(x_train) * cos(x_train)
 y_test <- x_test * plogis(x_test) * cos(x_test)
 D2 <- outer(c(x_train, x_test), c(x_train, x_test), "-")^2
-fit <- fit_gpr(D2, seq_len(N1), N1 + seq_len(N2), y_train, y_test, runs = 50)
+fit <- fit_gpr(D2, seq_len(N1), N1 + seq_len(N2), y_train, y_test,
+  runs = 50L, cores = 2)
 curve(x * plogis(x) * cos(x), -pi, pi)
 points(x_train, y_train, pch = 1)
 points(x_test, fit$test_predictions, pch = 16)

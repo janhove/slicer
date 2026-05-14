@@ -2,7 +2,6 @@
 
 export(compute_all_distances)
 export(fit_gpr)
-export(fit_gpr_multiple)
 export(generate_directions)
 export(gpr_predict)
 export(nw_corner_distance)

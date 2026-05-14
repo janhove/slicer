@@ -295,6 +295,8 @@ find_gpr_hyperparameters_multiple <- function(
 #' with a Gaussian RBF kernel. The hyperparameters are tuned using the
 #' training data by minimising the model's negative marginal log-likelihood.
 #'
+#' @noRd
+#'
 #' @param D2 A matrix containing squared pairwise distances between all objects.
 #' @param training_idx A vector with the row (and column) numbers corresponding to the training entries in `D2`.
 #' @param test_idx A vector with the row (and column) numbers corresponding to the test entries in `D2`.
@@ -309,7 +311,6 @@ find_gpr_hyperparameters_multiple <- function(
 #' @return A list containing the predictions for the test objects,
 #'     the root mean squared error (if the true test outcomes are provided),
 #'     and the three tuned hyperparameter values.
-#' @export
 #'
 #' @examples
 #' N1 <- 25
@@ -319,12 +320,12 @@ find_gpr_hyperparameters_multiple <- function(
 #' y_train <- x_train * plogis(x_train) * cos(x_train)
 #' y_test <- x_test * plogis(x_test) * cos(x_test)
 #' D2 <- outer(c(x_train, x_test), c(x_train, x_test), "-")^2
-#' fit <- fit_gpr(D2, seq_len(N1), N1 + seq_len(N2), y_train, y_test, runs = 50)
+#' fit <- fit_gpr_single(D2, seq_len(N1), N1 + seq_len(N2), y_train, y_test, runs = 50)
 #' curve(x * plogis(x) * cos(x), -pi, pi)
 #' points(x_train, y_train, pch = 1)
 #' points(x_test, fit$test_predictions, pch = 16)
 #' fit$RMSE
-fit_gpr <- function(
+fit_gpr_single <- function(
     D2, training_idx, test_idx, y_train, y_test = NULL,
     centre = TRUE, use_gradient = TRUE, runs = 10, verbose = TRUE) {
   D2_train <- D2[training_idx, training_idx]
@@ -346,7 +347,8 @@ fit_gpr <- function(
     RMSE = if (is.null(y_test)) NA else sqrt(mean((predictions - y_test)^2)),
     length_scale = length_scale,
     variance = variance,
-    lambda2 = lambda2
+    lambda2 = lambda2,
+    nll = params$nll
   )
 }
 #' Gaussian Process Fitting to Test Data Using Multiple Kernels with Tuned Hyperparameters
@@ -355,6 +357,8 @@ fit_gpr <- function(
 #' matrices are available. A kernel is then built as a linear combination
 #' of base Gaussian RBF kernels. The hyperparameters are tuned by minimising
 #' the model's negative marginal log-likelihood on the training data.
+#'
+#' @noRd
 #'
 #' @param D2_list A list of matrices containing squared pairwise distances between all objects.
 #' @param training_idx A vector with the row (and column) numbers corresponding to the training entries in `D2`.
@@ -369,8 +373,7 @@ fit_gpr <- function(
 #'
 #' @return A list containing the predictions for the test objects,
 #'     the root mean squared error (if the true test outcomes are provided),
-#'     and the tuned hyperparameter values.
-#' @export
+#'     the tuned hyperparameter values, and the negative log marginal likelihood (nll).
 #'
 #' @examples
 #' N1 <- 25
@@ -411,6 +414,105 @@ fit_gpr_multiple <- function(
     RMSE = if (is.null(y_test)) NA else sqrt(mean((predictions - y_test)^2)),
     length_scale = length_scale,
     variance = variance,
-    lambda2 = lambda2
+    lambda2 = lambda2,
+    nll = params$nll
   )
+}
+
+#' Gaussian Process Fitting to Test Data with Tuned Hyperparameters
+#'
+#' This function generates predictions using a Gaussian process model
+#' with one or several Gaussian RBF kernels. The hyperparameters are tuned using the
+#' training data by minimising the model's negative marginal log-likelihood.
+#'
+#' @param D2 A matrix, or a list of matrices, containing squared pairwise distances between all objects.
+#' @param training_idx A vector with the row (and column) numbers corresponding to the training entries in `D2`.
+#' @param test_idx A vector with the row (and column) numbers corresponding to the test entries in `D2`.
+#' @param y_train A vector with the training outcomes.
+#' @param y_test Optionally, a vector with the test outcomes.
+#' @param centre If `TRUE`, the training outcomes are centred around their mean before fitting the model. The mean is then added back to the predictions at the end.
+#' @param use_gradient If `TRUE`, closed-form expressions for the RBF's gradient are used.
+#'                     Else, the optimiser uses the finite-differences method.
+#' @param runs Number of independent attempts to find a minimum when optimising the hyperparameters.
+#' @param cores Number of cores used for parallel processing.
+#' @param verbose If `TRUE`, progress is shown on the console. Only works if `cores == 1L`.
+#'
+#' @return A list containing the predictions for the test objects,
+#'     the root mean squared error (if the true test outcomes are provided),
+#'     the tuned hyperparameter values, and the negative log marginal likelihood (nll).
+#' @export
+#'
+#' @examples
+#' # Multiple kernels
+#' N1 <- 25
+#' N2 <- 10
+#' x_train1 <- runif(N1, -pi, pi)
+#' x_train2 <- runif(N1, 0, 1)
+#' x_test1  <- runif(N2, -pi, pi)
+#' x_test2  <- runif(N2, 0, 1)
+#' y_train <- x_train2 * plogis(x_train1) * cos(x_train1)
+#' y_test <- x_test2 * plogis(x_test1) * cos(x_test1)
+#' D2_1 <- outer(c(x_train1, x_test1), c(x_train1, x_test1), "-")^2
+#' D2_2 <- outer(c(x_train2, x_test2), c(x_train2, x_test2), "-")^2
+#' # Single core
+#' fit <- fit_gpr(list(D2_1, D2_2), seq_len(N1), N1 + seq_len(N2),
+#'   y_train, y_test, runs = 50)
+#' plot(fit$test_predictions, y_test)
+#' fit
+#' # Multiple cores
+#' fit <- fit_gpr(list(D2_1, D2_2), seq_len(N1), N1 + seq_len(N2),
+#'   y_train, y_test, runs = 50, cores = 2)
+#' fit
+#'
+#' # Single kernel
+#' N1 <- 25
+#' N2 <- 10
+#' x_train <- seq(-pi, pi, length.out = N1)
+#' x_test  <- runif(N2, -pi, pi)
+#' y_train <- x_train * plogis(x_train) * cos(x_train)
+#' y_test <- x_test * plogis(x_test) * cos(x_test)
+#' D2 <- outer(c(x_train, x_test), c(x_train, x_test), "-")^2
+#' fit <- fit_gpr(D2, seq_len(N1), N1 + seq_len(N2), y_train, y_test,
+#'   runs = 50L, cores = 2)
+#' curve(x * plogis(x) * cos(x), -pi, pi)
+#' points(x_train, y_train, pch = 1)
+#' points(x_test, fit$test_predictions, pch = 16)
+#' fit$RMSE
+fit_gpr <- function(
+    D2, training_idx, test_idx, y_train, y_test = NULL,
+    centre = TRUE, use_gradient = TRUE, runs = 10L, cores = 1L, verbose = TRUE) {
+  if (cores <= 1L) {
+    if (is.list(D2)) {
+      my_fit <- fit_gpr_multiple(D2, training_idx, test_idx, y_train,
+        y_test, centre = centre, use_gradient = use_gradient, runs = runs,
+        verbose = verbose)
+      return(my_fit)
+    }
+    my_fit <- fit_gpr_single(D2, training_idx, test_idx, y_train,
+      y_test, centre = centre, use_gradient = use_gradient, runs = runs,
+      verbose = verbose)
+    return(my_fit)
+  }
+
+  # Parallel processing
+  available_cores <- parallel::detectCores()
+  if (cores > available_cores - 1) {
+    cores <- available_cores - 1
+    warning(paste0("Number of cores clamped to ", cores, "."))
+  }
+  runs_per_core <- ceiling(runs / cores)
+  cl <- parallel::makeCluster(cores)
+  on.exit(parallel::stopCluster(cl))
+  results <- parallel::parLapply(cl, seq_len(cores),
+    function(i, D2, training_idx, test_idx, y_train, y_test, centre, use_gradient, runs_per_core, verbose) {
+      fit_gpr(D2, training_idx, test_idx, y_train, y_test,
+        centre = centre, use_gradient = use_gradient,
+        runs = runs_per_core, cores = 1L, verbose = FALSE)
+  },
+  D2 = D2, training_idx = training_idx, test_idx = test_idx,
+  y_train = y_train, y_test = y_test, centre = centre,
+  use_gradient = use_gradient, runs_per_core = runs_per_core,
+  verbose = verbose)
+  best_idx <- which.min(sapply(results, `[[`, "nll"))
+  results[[best_idx]]
 }
