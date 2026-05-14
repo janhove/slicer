@@ -161,13 +161,13 @@ plot(angles[N_train + seq_len(N_test)], sw_fit$test_predictions,
 rmse(sw_fit$test_predictions, angles[N_train + seq_len(N_test)])
 ```
 
-When multiple matrices with squared distances are provided,
-the function `fit_gpr_multiple()` can be used.
+The function `fit_gpr()` can also be used when multiple matrices 
+with squared distances are provided.
 Now, estimated length-scale and (kernel) variance hyperparameters
 are provided for the Gaussian RBF corresponding to each squared distance matrix.
 
 ```{r}
-marginal_fit <- fit_gpr_multiple(marginal_distances,
+marginal_fit <- fit_gpr(marginal_distances,
   training_idx = seq_len(N_train),
   test_idx = N_train + seq_len(N_test),
   y_train = angles[seq_len(N_train)], 
@@ -182,7 +182,7 @@ We can combine the marginal and sliced Wasserstein distances into a list with
 three distance matrices, too:
 
 ```{r}
-total_fit <- fit_gpr_multiple(list(sw_distances, marginal_distances[[1]], marginal_distances[[2]]),
+total_fit <- fit_gpr(list(sw_distances, marginal_distances[[1]], marginal_distances[[2]]),
   training_idx = seq_len(N_train),
   test_idx = N_train + seq_len(N_test),
   y_train = angles[seq_len(N_train)], 
@@ -191,5 +191,14 @@ str(total_fit)
 plot(angles[N_train + seq_len(N_test)], total_fit$test_predictions,
      xlab = "true test outcomes", ylab = "predicted test outcomes")
 rmse(total_fit$test_predictions, angles[N_train + seq_len(N_test)])
+```
+
+Parallel processing can be enabled using the `cores` parameter:
+
+```{r}
+total_fit <- fit_gpr(list(sw_distances, marginal_distances[[1]], marginal_distances[[2]]),
+  training_idx = seq_len(N_train),
+  test_idx = N_train + seq_len(N_test),
+  y_train = angles[seq_len(N_train)], runs = 50L, cores = 2L)
 ```
 
