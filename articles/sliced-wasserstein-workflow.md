@@ -174,7 +174,7 @@ provided), and the estimated hyperparameters.
 ``` r
 
 str(sw_fit)
-#> List of 5
+#> List of 6
 #>  $ test_predictions: num [1:20] 0.241 0.7091 0.2402 0.5074 0.0604 ...
 #>  $ RMSE            : logi NA
 #>  $ length_scale    : Named num 1.57
@@ -183,6 +183,7 @@ str(sw_fit)
 #>   ..- attr(*, "names")= chr "variance"
 #>  $ lambda2         : Named num 1.57e-07
 #>   ..- attr(*, "names")= chr "lambda2"
+#>  $ nll             : num -58.8
 plot(angles[N_train + seq_len(N_test)], sw_fit$test_predictions,
      xlab = "true test outcomes", ylab = "predicted test outcomes")
 ```
@@ -195,15 +196,16 @@ rmse(sw_fit$test_predictions, angles[N_train + seq_len(N_test)])
 #> [1] 0.03804247
 ```
 
-When multiple matrices with squared distances are provided, the function
-[`fit_gpr_multiple()`](https://janhove.github.io/slicer/reference/fit_gpr_multiple.md)
-can be used. Now, estimated length-scale and (kernel) variance
-hyperparameters are provided for the Gaussian RBF corresponding to each
-squared distance matrix.
+The function
+[`fit_gpr()`](https://janhove.github.io/slicer/reference/fit_gpr.md) can
+also be used when multiple matrices with squared distances are provided.
+Now, estimated length-scale and (kernel) variance hyperparameters are
+provided for the Gaussian RBF corresponding to each squared distance
+matrix.
 
 ``` r
 
-marginal_fit <- fit_gpr_multiple(marginal_distances,
+marginal_fit <- fit_gpr(marginal_distances,
   training_idx = seq_len(N_train),
   test_idx = N_train + seq_len(N_test),
   y_train = angles[seq_len(N_train)], 
@@ -222,7 +224,7 @@ marginal_fit <- fit_gpr_multiple(marginal_distances,
 #> Hyperparameter search 9 of 10.
 #> Hyperparameter search 10 of 10.
 str(marginal_fit)
-#> List of 5
+#> List of 6
 #>  $ test_predictions: num [1:20] 0.2395 0.6678 0.2429 0.5619 0.0919 ...
 #>  $ RMSE            : logi NA
 #>  $ length_scale    : Named num [1:2] 3.9 6.09
@@ -231,6 +233,7 @@ str(marginal_fit)
 #>   ..- attr(*, "names")= chr [1:2] "variance1" "variance2"
 #>  $ lambda2         : Named num 0.000448
 #>   ..- attr(*, "names")= chr "lambda2"
+#>  $ nll             : num -61.5
 plot(angles[N_train + seq_len(N_test)], marginal_fit$test_predictions,
      xlab = "true test outcomes", ylab = "predicted test outcomes")
 ```
@@ -248,7 +251,7 @@ with three distance matrices, too:
 
 ``` r
 
-total_fit <- fit_gpr_multiple(list(sw_distances, marginal_distances[[1]], marginal_distances[[2]]),
+total_fit <- fit_gpr(list(sw_distances, marginal_distances[[1]], marginal_distances[[2]]),
   training_idx = seq_len(N_train),
   test_idx = N_train + seq_len(N_test),
   y_train = angles[seq_len(N_train)], 
@@ -258,7 +261,7 @@ total_fit <- fit_gpr_multiple(list(sw_distances, marginal_distances[[1]], margin
 #> Hyperparameter search 2 of 10.
 #> Current optimum improved from -58.8320454 to -61.5129334.
 #> Hyperparameter search 3 of 10.
-#> Current optimum improved from -61.5129334 to -63.0802534.
+#> Current optimum improved from -61.5129334 to -63.080251.
 #> Hyperparameter search 4 of 10.
 #> Hyperparameter search 5 of 10.
 #> Hyperparameter search 6 of 10.
@@ -267,15 +270,16 @@ total_fit <- fit_gpr_multiple(list(sw_distances, marginal_distances[[1]], margin
 #> Hyperparameter search 9 of 10.
 #> Hyperparameter search 10 of 10.
 str(total_fit)
-#> List of 5
+#> List of 6
 #>  $ test_predictions: num [1:20] 0.247 0.69 0.247 0.549 0.085 ...
 #>  $ RMSE            : logi NA
-#>  $ length_scale    : Named num [1:3] 0.421 3.836 5.488
+#>  $ length_scale    : Named num [1:3] 0.421 3.833 5.482
 #>   ..- attr(*, "names")= chr [1:3] "length_scale1" "length_scale2" "length_scale3"
-#>  $ variance        : Named num [1:3] 0.00117 0.24744 0.12483
+#>  $ variance        : Named num [1:3] 0.00118 0.24703 0.12446
 #>   ..- attr(*, "names")= chr [1:3] "variance1" "variance2" "variance3"
 #>  $ lambda2         : Named num 3.32e-08
 #>   ..- attr(*, "names")= chr "lambda2"
+#>  $ nll             : num -63.1
 plot(angles[N_train + seq_len(N_test)], total_fit$test_predictions,
      xlab = "true test outcomes", ylab = "predicted test outcomes")
 ```
@@ -285,5 +289,15 @@ plot(angles[N_train + seq_len(N_test)], total_fit$test_predictions,
 ``` r
 
 rmse(total_fit$test_predictions, angles[N_train + seq_len(N_test)])
-#> [1] 0.04697913
+#> [1] 0.04697571
+```
+
+Parallel processing can be enabled using the `cores` parameter:
+
+``` r
+
+total_fit <- fit_gpr(list(sw_distances, marginal_distances[[1]], marginal_distances[[2]]),
+  training_idx = seq_len(N_train),
+  test_idx = N_train + seq_len(N_test),
+  y_train = angles[seq_len(N_train)], runs = 50L, cores = 2L)
 ```

@@ -35,9 +35,6 @@ Refer to the vignette for a brief tutorial.
   Several Empirical Distributions
 - [`fit_gpr()`](https://janhove.github.io/slicer/reference/fit_gpr.md) :
   Gaussian Process Fitting to Test Data with Tuned Hyperparameters
-- [`fit_gpr_multiple()`](https://janhove.github.io/slicer/reference/fit_gpr_multiple.md)
-  : Gaussian Process Fitting to Test Data Using Multiple Kernels with
-  Tuned Hyperparameters
 - [`generate_directions()`](https://janhove.github.io/slicer/reference/generate_directions.md)
   : Generate random projection directions
 - [`gpr_predict()`](https://janhove.github.io/slicer/reference/gpr_predict.md)

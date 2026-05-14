@@ -48,11 +48,11 @@ Estimated sliced Wasserstein distance of order `p` between `x` and `y`.
 M1 <- matrix(rnorm(50), ncol = 5)
 M2 <- matrix(rnorm(250), ncol = 5)
 sliced_wasserstein(M1, M2) # random projection directions
-#> [1] 0.6550946
+#> [1] 0.6139966
 cardinal_axes <- diag(1, 5)
 sliced_wasserstein(M1, M2, thetas = cardinal_axes)
-#> [1] 0.5931266
+#> [1] 0.6674493
 first_two_axes <- cardinal_axes[1:2, ]
 sliced_wasserstein(M1, M2, thetas = first_two_axes)
-#> [1] 0.6565441
+#> [1] 0.6105983
 ```

@@ -43,7 +43,7 @@ The p-Wasserstein distance between `x` and `y`.
 x <- rnorm(10)
 y <- rnorm(40)
 nw_corner_distance(x, y)
-#> [1] 0.4523439
+#> [1] 0.37397
 nw_corner_distance(sort(x), sort(y), presorted = TRUE)
-#> [1] 0.4523439
+#> [1] 0.37397
 ```
