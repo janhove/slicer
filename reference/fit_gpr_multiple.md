@@ -89,6 +89,7 @@ D2_1 <- outer(c(x_train1, x_test1), c(x_train1, x_test1), "-")^2
 D2_2 <- outer(c(x_train2, x_test2), c(x_train2, x_test2), "-")^2
 fit <- fit_gpr_multiple(list(D2_1, D2_2), seq_len(N1), N1 + seq_len(N2), y_train, y_test, runs = 50)
 #> Hyperparameter search 1 of 50.
+#> Optimum set at -8.18636.
 #> Hyperparameter search 2 of 50.
 #> Current optimum improved from -8.18636 to -17.4587811.
 #> Hyperparameter search 3 of 50.
@@ -109,6 +110,7 @@ fit <- fit_gpr_multiple(list(D2_1, D2_2), seq_len(N1), N1 + seq_len(N2), y_train
 #> Hyperparameter search 17 of 50.
 #> Hyperparameter search 18 of 50.
 #> Hyperparameter search 19 of 50.
+#> Current optimum improved from -17.458826 to -17.8169383.
 #> Hyperparameter search 20 of 50.
 #> Hyperparameter search 21 of 50.
 #> Hyperparameter search 22 of 50.
@@ -117,7 +119,6 @@ fit <- fit_gpr_multiple(list(D2_1, D2_2), seq_len(N1), N1 + seq_len(N2), y_train
 #> Hyperparameter search 25 of 50.
 #> Hyperparameter search 26 of 50.
 #> Hyperparameter search 27 of 50.
-#> Current optimum improved from -17.458826 to -17.8165956.
 #> Hyperparameter search 28 of 50.
 #> Hyperparameter search 29 of 50.
 #> Hyperparameter search 30 of 50.
@@ -144,5 +145,5 @@ fit <- fit_gpr_multiple(list(D2_1, D2_2), seq_len(N1), N1 + seq_len(N2), y_train
 plot(fit$test_predictions, y_test)
 
 fit$RMSE
-#> [1] 0.1857205
+#> [1] 0.1857276
 ```

@@ -82,17 +82,19 @@ y_test <- x_test * plogis(x_test) * cos(x_test)
 D2 <- outer(c(x_train, x_test), c(x_train, x_test), "-")^2
 fit <- fit_gpr(D2, seq_len(N1), N1 + seq_len(N2), y_train, y_test, runs = 50)
 #> Hyperparameter search 1 of 50.
+#> Optimum set at 33.4139022.
 #> Hyperparameter search 2 of 50.
-#> Current optimum improved from 33.4139022 to -162.9225601.
+#> Current optimum improved from 33.4139022 to -158.1744971.
 #> Hyperparameter search 3 of 50.
+#> Current optimum improved from -158.1744971 to -158.2060071.
 #> Hyperparameter search 4 of 50.
-#> Current optimum improved from -162.9225601 to -164.1120198.
+#> Current optimum improved from -158.2060071 to -164.7278241.
 #> Hyperparameter search 5 of 50.
 #> Hyperparameter search 6 of 50.
 #> Hyperparameter search 7 of 50.
 #> Hyperparameter search 8 of 50.
-#> Current optimum improved from -164.1120198 to -165.296618.
 #> Hyperparameter search 9 of 50.
+#> Current optimum improved from -164.7278241 to -164.8491912.
 #> Hyperparameter search 10 of 50.
 #> Hyperparameter search 11 of 50.
 #> Hyperparameter search 12 of 50.
@@ -100,6 +102,7 @@ fit <- fit_gpr(D2, seq_len(N1), N1 + seq_len(N2), y_train, y_test, runs = 50)
 #> Hyperparameter search 14 of 50.
 #> Hyperparameter search 15 of 50.
 #> Hyperparameter search 16 of 50.
+#> Current optimum improved from -164.8491912 to -165.7108507.
 #> Hyperparameter search 17 of 50.
 #> Hyperparameter search 18 of 50.
 #> Hyperparameter search 19 of 50.
@@ -113,13 +116,11 @@ fit <- fit_gpr(D2, seq_len(N1), N1 + seq_len(N2), y_train, y_test, runs = 50)
 #> Hyperparameter search 27 of 50.
 #> Hyperparameter search 28 of 50.
 #> Hyperparameter search 29 of 50.
-#> Current optimum improved from -165.296618 to -165.9016785.
 #> Hyperparameter search 30 of 50.
 #> Hyperparameter search 31 of 50.
 #> Hyperparameter search 32 of 50.
 #> Hyperparameter search 33 of 50.
 #> Hyperparameter search 34 of 50.
-#> Current optimum improved from -165.9016785 to -166.450244.
 #> Hyperparameter search 35 of 50.
 #> Hyperparameter search 36 of 50.
 #> Hyperparameter search 37 of 50.
@@ -141,5 +142,5 @@ points(x_train, y_train, pch = 1)
 points(x_test, fit$test_predictions, pch = 16)
 
 fit$RMSE
-#> [1] 1.042871e-08
+#> [1] 1.842849e-08
 ```

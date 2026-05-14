@@ -120,17 +120,19 @@ and the three tuned hyperparameter values.</p>
 <span class="r-in"><span><span class="va">D2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/outer.html" class="external-link">outer</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">x_train</span>, <span class="va">x_test</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">x_train</span>, <span class="va">x_test</span><span class="op">)</span>, <span class="st">"-"</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span></span></span>
 <span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu">fit_gpr</span><span class="op">(</span><span class="va">D2</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N1</span><span class="op">)</span>, <span class="va">N1</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N2</span><span class="op">)</span>, <span class="va">y_train</span>, <span class="va">y_test</span>, runs <span class="op">=</span> <span class="fl">50</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 1 of 50.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Optimum set at 33.4139022.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 2 of 50.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Current optimum improved from 33.4139022 to -162.9225601.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Current optimum improved from 33.4139022 to -158.1744971.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 3 of 50.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Current optimum improved from -158.1744971 to -158.2060071.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 4 of 50.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Current optimum improved from -162.9225601 to -164.1120198.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Current optimum improved from -158.2060071 to -164.7278241.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 5 of 50.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 6 of 50.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 7 of 50.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 8 of 50.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Current optimum improved from -164.1120198 to -165.296618.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 9 of 50.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Current optimum improved from -164.7278241 to -164.8491912.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 10 of 50.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 11 of 50.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 12 of 50.</span>
@@ -138,6 +140,7 @@ and the three tuned hyperparameter values.</p>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 14 of 50.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 15 of 50.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 16 of 50.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Current optimum improved from -164.8491912 to -165.7108507.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 17 of 50.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 18 of 50.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 19 of 50.</span>
@@ -151,13 +154,11 @@ and the three tuned hyperparameter values.</p>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 27 of 50.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 28 of 50.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 29 of 50.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Current optimum improved from -165.296618 to -165.9016785.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 30 of 50.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 31 of 50.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 32 of 50.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 33 of 50.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 34 of 50.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Current optimum improved from -165.9016785 to -166.450244.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 35 of 50.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 36 of 50.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 37 of 50.</span>
@@ -179,7 +180,7 @@ and the three tuned hyperparameter values.</p>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/points.html" class="external-link">points</a></span><span class="op">(</span><span class="va">x_test</span>, <span class="va">fit</span><span class="op">$</span><span class="va">test_predictions</span>, pch <span class="op">=</span> <span class="fl">16</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="fit_gpr-1.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="va">fit</span><span class="op">$</span><span class="va">RMSE</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1.042871e-08</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1.842849e-08</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

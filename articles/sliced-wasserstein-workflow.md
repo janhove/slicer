@@ -154,6 +154,7 @@ sw_fit <- fit_gpr(sw_distances,
   y_train = angles[seq_len(N_train)], 
   verbose = TRUE)
 #> Hyperparameter search 1 of 10.
+#> Optimum set at -58.8175077.
 #> Hyperparameter search 2 of 10.
 #> Hyperparameter search 3 of 10.
 #> Hyperparameter search 4 of 10.
@@ -208,6 +209,7 @@ marginal_fit <- fit_gpr_multiple(marginal_distances,
   y_train = angles[seq_len(N_train)], 
   verbose = TRUE)
 #> Hyperparameter search 1 of 10.
+#> Optimum set at -48.3151392.
 #> Hyperparameter search 2 of 10.
 #> Current optimum improved from -48.3151392 to -61.5134707.
 #> Hyperparameter search 3 of 10.
@@ -252,10 +254,11 @@ total_fit <- fit_gpr_multiple(list(sw_distances, marginal_distances[[1]], margin
   y_train = angles[seq_len(N_train)], 
   verbose = TRUE)
 #> Hyperparameter search 1 of 10.
+#> Optimum set at -58.8320454.
 #> Hyperparameter search 2 of 10.
 #> Current optimum improved from -58.8320454 to -61.5129334.
 #> Hyperparameter search 3 of 10.
-#> Current optimum improved from -61.5129334 to -63.080251.
+#> Current optimum improved from -61.5129334 to -63.0802534.
 #> Hyperparameter search 4 of 10.
 #> Hyperparameter search 5 of 10.
 #> Hyperparameter search 6 of 10.
@@ -267,9 +270,9 @@ str(total_fit)
 #> List of 5
 #>  $ test_predictions: num [1:20] 0.247 0.69 0.247 0.549 0.085 ...
 #>  $ RMSE            : logi NA
-#>  $ length_scale    : Named num [1:3] 0.421 3.833 5.482
+#>  $ length_scale    : Named num [1:3] 0.421 3.836 5.488
 #>   ..- attr(*, "names")= chr [1:3] "length_scale1" "length_scale2" "length_scale3"
-#>  $ variance        : Named num [1:3] 0.00118 0.24703 0.12446
+#>  $ variance        : Named num [1:3] 0.00117 0.24744 0.12483
 #>   ..- attr(*, "names")= chr [1:3] "variance1" "variance2" "variance3"
 #>  $ lambda2         : Named num 3.32e-08
 #>   ..- attr(*, "names")= chr "lambda2"
@@ -282,5 +285,5 @@ plot(angles[N_train + seq_len(N_test)], total_fit$test_predictions,
 ``` r
 
 rmse(total_fit$test_predictions, angles[N_train + seq_len(N_test)])
-#> [1] 0.04697571
+#> [1] 0.04697913
 ```
