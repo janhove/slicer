@@ -117,7 +117,6 @@ find_gpr_hyperparameters <- function(
     last_log_params <<- log_params
   }
 
-
   nll <- function(log_params) {
     update_cache(log_params)
     if (is.null(last_U)) return(Inf)
@@ -166,6 +165,8 @@ find_gpr_hyperparameters <- function(
     if (!is.null(fit) && (is.null(best) || fit$value < best$value)) {
       if (verbose && !is.null(best)) message(paste0("Current optimum improved from ",
         round(best$value, options()$digits), " to ",
+        round(fit$value, options()$digits), "."))
+      if (verbose && is.null(best)) message(paste0("Optimum set at ",
         round(fit$value, options()$digits), "."))
       best <- fit
     }
@@ -243,7 +244,7 @@ find_gpr_hyperparameters_multiple <- function(
     jacobian <- numeric(2*L + 1)
     for (ell in 1:L) {
       DK <- last_K_list[[ell]] * va_vec[[ell]]
-      jacobian[[ell]]     <- -0.5 * (drop(last_a %*% DK %*% last_a) - sum(W * DK))
+      jacobian[[ell]] <- -0.5 * (drop(last_a %*% DK %*% last_a) - sum(W * DK))
       jacobian[[L + ell]] <- -0.5 * (drop(last_a %*% (DK * D2_list[[ell]] / ls_vec[[ell]]^2) %*% last_a) - sum(W * DK * D2_list[[ell]] / ls_vec[[ell]]^2))
     }
     jacobian[[2*L + 1]] <- -0.5 * lambda2 * (drop(last_a %*% last_a) - sum(diag(W)))
@@ -274,6 +275,8 @@ find_gpr_hyperparameters_multiple <- function(
     if (!is.null(fit) && (is.null(best) || fit$value < best$value)) {
       if (verbose && !is.null(best)) message(paste0("Current optimum improved from ",
         round(best$value, options()$digits), " to ",
+        round(fit$value, options()$digits), "."))
+      if (verbose && is.null(best)) message(paste0("Optimum set at ",
         round(fit$value, options()$digits), "."))
       best <- fit
     }
