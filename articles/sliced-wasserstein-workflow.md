@@ -180,12 +180,9 @@ str(sw_fit)
 #> List of 6
 #>  $ test_predictions: num [1:20] 0.241 0.7091 0.2402 0.5074 0.0604 ...
 #>  $ RMSE            : logi NA
-#>  $ length_scale    : Named num 1.57
-#>   ..- attr(*, "names")= chr "length_scale"
-#>  $ variance        : Named num 0.0758
-#>   ..- attr(*, "names")= chr "variance"
-#>  $ lambda2         : Named num 1.57e-07
-#>   ..- attr(*, "names")= chr "lambda2"
+#>  $ length_scale    : num 1.57
+#>  $ scaling_factor  : num 0.0758
+#>  $ noise_variance  : num 1.57e-07
 #>  $ nll             : num -58.8
 plot(angles[N_train + seq_len(N_test)], sw_fit$test_predictions,
      xlab = "true test outcomes", ylab = "predicted test outcomes", asp = 1)
@@ -230,12 +227,9 @@ str(marginal_fit)
 #> List of 6
 #>  $ test_predictions: num [1:20] 0.2395 0.6678 0.2429 0.5619 0.0919 ...
 #>  $ RMSE            : logi NA
-#>  $ length_scale    : Named num [1:2] 3.9 6.09
-#>   ..- attr(*, "names")= chr [1:2] "length_scale1" "length_scale2"
-#>  $ variance        : Named num [1:2] 0.347 0.146
-#>   ..- attr(*, "names")= chr [1:2] "variance1" "variance2"
-#>  $ lambda2         : Named num 0.000448
-#>   ..- attr(*, "names")= chr "lambda2"
+#>  $ length_scale    : num [1:2] 3.9 6.09
+#>  $ scaling_factor  : num [1:2] 0.347 0.146
+#>  $ noise_variance  : num 0.000448
 #>  $ nll             : num -61.5
 plot(angles[N_train + seq_len(N_test)], marginal_fit$test_predictions,
      xlab = "true test outcomes", ylab = "predicted test outcomes", asp = 1)
@@ -276,12 +270,9 @@ str(total_fit)
 #> List of 6
 #>  $ test_predictions: num [1:20] 0.247 0.69 0.247 0.549 0.085 ...
 #>  $ RMSE            : logi NA
-#>  $ length_scale    : Named num [1:3] 0.421 3.833 5.482
-#>   ..- attr(*, "names")= chr [1:3] "length_scale1" "length_scale2" "length_scale3"
-#>  $ variance        : Named num [1:3] 0.00118 0.24703 0.12446
-#>   ..- attr(*, "names")= chr [1:3] "variance1" "variance2" "variance3"
-#>  $ lambda2         : Named num 3.32e-08
-#>   ..- attr(*, "names")= chr "lambda2"
+#>  $ length_scale    : num [1:3] 0.421 3.833 5.482
+#>  $ scaling_factor  : num [1:3] 0.00118 0.24703 0.12446
+#>  $ noise_variance  : num 3.32e-08
 #>  $ nll             : num -63.1
 plot(angles[N_train + seq_len(N_test)], total_fit$test_predictions,
      xlab = "true test outcomes", ylab = "predicted test outcomes", asp = 1)
@@ -305,13 +296,10 @@ total_fit <- fit_gpr(list(sw_distances, marginal_distances[[1]], marginal_distan
   y_train = angles[seq_len(N_train)], runs = 50L, cores = 2L)
 str(total_fit)
 #> List of 6
-#>  $ test_predictions: num [1:20] 0.247 0.69 0.247 0.549 0.085 ...
+#>  $ test_predictions: num [1:20] 0.268 0.682 0.25 0.581 0.11 ...
 #>  $ RMSE            : logi NA
-#>  $ length_scale    : Named num [1:3] 0.421 3.836 5.488
-#>   ..- attr(*, "names")= chr [1:3] "length_scale1" "length_scale2" "length_scale3"
-#>  $ variance        : Named num [1:3] 0.00117 0.24743 0.1248
-#>   ..- attr(*, "names")= chr [1:3] "variance1" "variance2" "variance3"
-#>  $ lambda2         : Named num 8.42e-08
-#>   ..- attr(*, "names")= chr "lambda2"
-#>  $ nll             : num -63.1
+#>  $ length_scale    : num [1:3] 0.283 4.653 182.597
+#>  $ scaling_factor  : num [1:3] 6.77e-04 7.52e-01 7.39e-15
+#>  $ noise_variance  : num 4.2e-10
+#>  $ nll             : num -61.8
 ```
