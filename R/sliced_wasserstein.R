@@ -67,6 +67,7 @@ sliced_wasserstein <- function(x, y, p = 2, thetas = NULL, L = 50, seed = NULL) 
 #' @param verbose If `TRUE`, show progress.
 #' @param keep_projections If `TRUE`, the distance matrix for each projection direction is output.
 #'                         If `FALSE`, the distance matrices for the different projection directions are averaged.
+#' @param test_idx Optionally, a vector of indices. If supplied, skip the distance computations between distribution pairs whose indices both occur in this vector.
 #'
 #' @return If `keep_projections = TRUE`, a list of squared-distance matrices, one for each projection direction;
 #'         otherwise, a matrix with the averaged squared distances.
@@ -74,7 +75,7 @@ sliced_wasserstein <- function(x, y, p = 2, thetas = NULL, L = 50, seed = NULL) 
 #'
 #' @examples
 #' M1 <- matrix(rnorm(50), ncol = 5)
-#' M2 <- matrix(rnorm(150), ncol = 5)
+#' M2 <- matrix(rnorm(50), ncol = 5)
 #' M3 <- matrix(rnorm(250), ncol = 5)
 #' # Sliced Wasserstein:
 #' my_directions <- generate_directions(20, 5)
@@ -90,7 +91,8 @@ sliced_wasserstein <- function(x, y, p = 2, thetas = NULL, L = 50, seed = NULL) 
 #'   keep_projections = TRUE, verbose = FALSE)
 #' shear_wass[[3]]
 compute_all_distances <- function(
-    distributions, thetas, A = NULL, verbose = TRUE, keep_projections = TRUE
+    distributions, thetas, A = NULL, verbose = TRUE, keep_projections = TRUE,
+    test_idx = NULL
 ) {
   d <- ncol(thetas)
   L <- nrow(thetas)
@@ -115,6 +117,11 @@ compute_all_distances <- function(
     distance_matrix <- matrix(0, nrow = N, ncol = N)
     for (i in 1:(N-1)) {
       for (j in (i+1):N) {
+        if (i %in% test_idx && j %in% test_idx) {
+          distance_matrix[i, j] <- NA
+          distance_matrix[j, i] <- NA
+          next
+        }
         current_distance <- nw_corner_distance(projections[[i]][, ell], projections[[j]][, ell], presorted = TRUE)^2
         distance_matrix[i, j] <- current_distance
         distance_matrix[j, i] <- current_distance

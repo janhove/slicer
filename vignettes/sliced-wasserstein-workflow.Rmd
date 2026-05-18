@@ -7,7 +7,7 @@ output:
     fig_align: "center"
     dev: svg
 vignette: >
-  %\VignetteIndexEntry{sliced-wasserstein-workflow}
+  %\VignetteIndexEntry{(Sliced) Wasserstein - Gaussian process regression workflow}           
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -65,9 +65,9 @@ set.seed(2026) # for reproducibility
 op <- par(no.readonly = TRUE)
 par(mfrow = c(1, 2))
 generate_data(angle = pi/16) |> 
-  plot(xlab = "first dimension", ylab = "second dimension")
+  plot(xlab = "first dimension", ylab = "second dimension", asp = 1)
 generate_data(angle = 3*pi/8) |> 
-  plot(xlab = "first dimension", ylab = "second dimension")
+  plot(xlab = "first dimension", ylab = "second dimension", asp = 1)
 par(op)
 ```
 
@@ -101,9 +101,10 @@ for (i in seq_len(N_train + N_test)) {
 
 ## Distances
 We can use `compute_all_distances()` to compute pairwise distances
-between all 60 input distributions.
-(Technically, we don't really need the pairwise distances between
-the twenty inputs used for testing.)
+between the input distributions.
+If we supply the optional vector `test_idx` with the test set indices,
+the pairwise distance computations between test objects (which are not needed)
+are skipped.
 To compute **sliced Wasserstein distances**, we need to first generate
 $\theta_1, \dots, \theta_L$ sampled uniformly at random from the unit sphere;
 `generate_directions()` takes care of this.
@@ -114,11 +115,13 @@ we can set `keep_projections` to `FALSE`.
 ```{r}
 thetas <- generate_directions(L = 25, d = 2)
 sw_distances <- compute_all_distances(distributions, thetas, verbose = FALSE,
-    keep_projections = FALSE)
+    keep_projections = FALSE, test_idx = N_train + seq_len(N_test))
 ```
 
 The $60 \times 60$ matrix `sw_distances` contains the _squared_ (estimated)
-sliced Wasserstein distances between the forty empirical distributions.
+sliced Wasserstein distances among the forty training objects and between
+the training objects and the twenty test objects.
+The pairwise distances among the test objects are set to `NA`.
 
 We can also compute (normal) **Wasserstein distances** between 
 the distributions when they are projected along certain dimensions.
@@ -131,7 +134,8 @@ one for each margin.
 
 ```{r}
 marginal_distances <- compute_all_distances(distributions, diag(1, 2), 
-    verbose = FALSE, keep_projections = TRUE)
+    verbose = FALSE, keep_projections = TRUE, 
+    test_idx = N_train + seq_len(N_test))
 str(marginal_distances)
 ```
 
@@ -157,7 +161,7 @@ were provided), and the estimated hyperparameters.
 ```{r}
 str(sw_fit)
 plot(angles[N_train + seq_len(N_test)], sw_fit$test_predictions,
-     xlab = "true test outcomes", ylab = "predicted test outcomes")
+     xlab = "true test outcomes", ylab = "predicted test outcomes", asp = 1)
 rmse(sw_fit$test_predictions, angles[N_train + seq_len(N_test)])
 ```
 
@@ -174,7 +178,7 @@ marginal_fit <- fit_gpr(marginal_distances,
   verbose = TRUE)
 str(marginal_fit)
 plot(angles[N_train + seq_len(N_test)], marginal_fit$test_predictions,
-     xlab = "true test outcomes", ylab = "predicted test outcomes")
+     xlab = "true test outcomes", ylab = "predicted test outcomes", asp = 1)
 rmse(marginal_fit$test_predictions, angles[N_train + seq_len(N_test)])
 ```
 
@@ -189,7 +193,7 @@ total_fit <- fit_gpr(list(sw_distances, marginal_distances[[1]], marginal_distan
   verbose = TRUE)
 str(total_fit)
 plot(angles[N_train + seq_len(N_test)], total_fit$test_predictions,
-     xlab = "true test outcomes", ylab = "predicted test outcomes")
+     xlab = "true test outcomes", ylab = "predicted test outcomes", asp = 1)
 rmse(total_fit$test_predictions, angles[N_train + seq_len(N_test)])
 ```
 
@@ -200,5 +204,6 @@ total_fit <- fit_gpr(list(sw_distances, marginal_distances[[1]], marginal_distan
   training_idx = seq_len(N_train),
   test_idx = N_train + seq_len(N_test),
   y_train = angles[seq_len(N_train)], runs = 50L, cores = 2L)
+str(total_fit)
 ```
 

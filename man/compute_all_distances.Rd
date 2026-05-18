@@ -9,7 +9,8 @@ compute_all_distances(
   thetas,
   A = NULL,
   verbose = TRUE,
-  keep_projections = TRUE
+  keep_projections = TRUE,
+  test_idx = NULL
 )
 }
 \arguments{
@@ -23,6 +24,8 @@ compute_all_distances(
 
 \item{keep_projections}{If \code{TRUE}, the distance matrix for each projection direction is output.
 If \code{FALSE}, the distance matrices for the different projection directions are averaged.}
+
+\item{test_idx}{Optionally, a vector of indices. If supplied, skip the distance computations between distribution pairs whose indices both occur in this vector.}
 }
 \value{
 If \code{keep_projections = TRUE}, a list of squared-distance matrices, one for each projection direction;
@@ -37,7 +40,7 @@ or the squared distances averaged over projection directions.
 }
 \examples{
 M1 <- matrix(rnorm(50), ncol = 5)
-M2 <- matrix(rnorm(150), ncol = 5)
+M2 <- matrix(rnorm(50), ncol = 5)
 M3 <- matrix(rnorm(250), ncol = 5)
 # Sliced Wasserstein:
 my_directions <- generate_directions(20, 5)
