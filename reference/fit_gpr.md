@@ -96,9 +96,10 @@ D2_2 <- outer(c(x_train2, x_test2), c(x_train2, x_test2), "-")^2
 fit <- fit_gpr(list(D2_1, D2_2), seq_len(N1), N1 + seq_len(N2),
   y_train, y_test, runs = 50)
 #> Hyperparameter search 1 of 50.
-#> Optimum set at -10.8843568.
+#> Optimum set at -6.7313219.
 #> Hyperparameter search 2 of 50.
 #> Hyperparameter search 3 of 50.
+#> Current optimum improved from -6.7313219 to -9.0170496.
 #> Hyperparameter search 4 of 50.
 #> Hyperparameter search 5 of 50.
 #> Hyperparameter search 6 of 50.
@@ -106,7 +107,6 @@ fit <- fit_gpr(list(D2_1, D2_2), seq_len(N1), N1 + seq_len(N2),
 #> Hyperparameter search 8 of 50.
 #> Hyperparameter search 9 of 50.
 #> Hyperparameter search 10 of 50.
-#> Current optimum improved from -10.8843568 to -10.8843568.
 #> Hyperparameter search 11 of 50.
 #> Hyperparameter search 12 of 50.
 #> Hyperparameter search 13 of 50.
@@ -151,52 +151,52 @@ plot(fit$test_predictions, y_test)
 
 fit
 #> $test_predictions
-#>  [1]  0.193023922  0.197859298 -0.281270778 -0.001806574 -0.050603571
-#>  [6]  0.200220328  0.218295659  0.151833107  0.086117642 -0.110344091
+#>  [1]  0.103819650 -0.132069036 -0.003162020  0.001227841  0.005412415
+#>  [6]  0.006466601 -0.231317504 -0.120333455 -0.010845450 -0.041972268
 #> 
 #> $RMSE
-#> [1] 0.06029104
+#> [1] 0.1799737
 #> 
 #> $length_scale
 #> length_scale1 length_scale2 
-#>     1.6227648     0.7937291 
+#>    1.24597125    0.05817039 
 #> 
 #> $variance
-#>   variance1   variance2 
-#> 0.055104948 0.005048196 
+#>  variance1  variance2 
+#> 0.03429806 0.01700076 
 #> 
 #> $lambda2
 #>    lambda2 
-#> 0.01457336 
+#> 0.01004947 
 #> 
 #> $nll
-#> [1] -10.88436
+#> [1] -9.01705
 #> 
 # Multiple cores
 fit <- fit_gpr(list(D2_1, D2_2), seq_len(N1), N1 + seq_len(N2),
   y_train, y_test, runs = 50, cores = 2)
 fit
 #> $test_predictions
-#>  [1]  0.193023866  0.197859317 -0.281270694 -0.001806513 -0.050603628
-#>  [6]  0.200220282  0.218295666  0.151833111  0.086117670 -0.110344115
+#>  [1]  0.103819533 -0.132068962 -0.003162010  0.001227749  0.005412126
+#>  [6]  0.006466888 -0.231317881 -0.120333357 -0.010845269 -0.041972019
 #> 
 #> $RMSE
-#> [1] 0.06029106
+#> [1] 0.1799738
 #> 
 #> $length_scale
 #> length_scale1 length_scale2 
-#>     1.6227640     0.7937265 
+#>    1.24596979    0.05817036 
 #> 
 #> $variance
-#>   variance1   variance2 
-#> 0.055104818 0.005048195 
+#>  variance1  variance2 
+#> 0.03429795 0.01700081 
 #> 
 #> $lambda2
 #>    lambda2 
-#> 0.01457336 
+#> 0.01004945 
 #> 
 #> $nll
-#> [1] -10.88436
+#> [1] -9.01705
 #> 
 
 # Single kernel
@@ -214,5 +214,5 @@ points(x_train, y_train, pch = 1)
 points(x_test, fit$test_predictions, pch = 16)
 
 fit$RMSE
-#> [1] 1.818487e-07
+#> [1] 8.707527e-08
 ```

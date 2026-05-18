@@ -50,9 +50,9 @@ set.seed(2026) # for reproducibility
 op <- par(no.readonly = TRUE)
 par(mfrow = c(1, 2))
 generate_data(angle = pi/16) |> 
-  plot(xlab = "first dimension", ylab = "second dimension")
+  plot(xlab = "first dimension", ylab = "second dimension", asp = 1)
 generate_data(angle = 3*pi/8) |> 
-  plot(xlab = "first dimension", ylab = "second dimension")
+  plot(xlab = "first dimension", ylab = "second dimension", asp = 1)
 ```
 
 ![](sliced-wasserstein-workflow_files/figure-html/unnamed-chunk-3-1.png)
@@ -97,11 +97,12 @@ for (i in seq_len(N_train + N_test)) {
 
 We can use
 [`compute_all_distances()`](https://janhove.github.io/slicer/reference/compute_all_distances.md)
-to compute pairwise distances between all 60 input distributions.
-(Technically, we don’t really need the pairwise distances between the
-twenty inputs used for testing.) To compute **sliced Wasserstein
-distances**, we need to first generate $`\theta_1, \dots, \theta_L`$
-sampled uniformly at random from the unit sphere;
+to compute pairwise distances between the input distributions. If we
+supply the optional vector `test_idx` with the test set indices, the
+pairwise distance computations between test objects (which are not
+needed) are skipped. To compute **sliced Wasserstein distances**, we
+need to first generate $`\theta_1, \dots, \theta_L`$ sampled uniformly
+at random from the unit sphere;
 [`generate_directions()`](https://janhove.github.io/slicer/reference/generate_directions.md)
 takes care of this. We’ll use $`L = 25`$ and set $`d = 2`$ since we’re
 working in two dimensions. If we’re only interested in the estimated
@@ -111,12 +112,13 @@ sliced Wasserstein distances, we can set `keep_projections` to `FALSE`.
 
 thetas <- generate_directions(L = 25, d = 2)
 sw_distances <- compute_all_distances(distributions, thetas, verbose = FALSE,
-    keep_projections = FALSE)
+    keep_projections = FALSE, test_idx = N_train + seq_len(N_test))
 ```
 
 The $`60 \times 60`$ matrix `sw_distances` contains the *squared*
-(estimated) sliced Wasserstein distances between the forty empirical
-distributions.
+(estimated) sliced Wasserstein distances among the forty training
+objects and between the training objects and the twenty test objects.
+The pairwise distances among the test objects are set to `NA`.
 
 We can also compute (normal) **Wasserstein distances** between the
 distributions when they are projected along certain dimensions. For
@@ -130,7 +132,8 @@ margin.
 ``` r
 
 marginal_distances <- compute_all_distances(distributions, diag(1, 2), 
-    verbose = FALSE, keep_projections = TRUE)
+    verbose = FALSE, keep_projections = TRUE, 
+    test_idx = N_train + seq_len(N_test))
 str(marginal_distances)
 #> List of 2
 #>  $ : num [1:60, 1:60] 0 1.274 0.931 0.548 0.649 ...
@@ -185,7 +188,7 @@ str(sw_fit)
 #>   ..- attr(*, "names")= chr "lambda2"
 #>  $ nll             : num -58.8
 plot(angles[N_train + seq_len(N_test)], sw_fit$test_predictions,
-     xlab = "true test outcomes", ylab = "predicted test outcomes")
+     xlab = "true test outcomes", ylab = "predicted test outcomes", asp = 1)
 ```
 
 ![](sliced-wasserstein-workflow_files/figure-html/unnamed-chunk-9-1.png)
@@ -235,7 +238,7 @@ str(marginal_fit)
 #>   ..- attr(*, "names")= chr "lambda2"
 #>  $ nll             : num -61.5
 plot(angles[N_train + seq_len(N_test)], marginal_fit$test_predictions,
-     xlab = "true test outcomes", ylab = "predicted test outcomes")
+     xlab = "true test outcomes", ylab = "predicted test outcomes", asp = 1)
 ```
 
 ![](sliced-wasserstein-workflow_files/figure-html/unnamed-chunk-10-1.png)
@@ -281,7 +284,7 @@ str(total_fit)
 #>   ..- attr(*, "names")= chr "lambda2"
 #>  $ nll             : num -63.1
 plot(angles[N_train + seq_len(N_test)], total_fit$test_predictions,
-     xlab = "true test outcomes", ylab = "predicted test outcomes")
+     xlab = "true test outcomes", ylab = "predicted test outcomes", asp = 1)
 ```
 
 ![](sliced-wasserstein-workflow_files/figure-html/unnamed-chunk-11-1.png)
@@ -300,4 +303,15 @@ total_fit <- fit_gpr(list(sw_distances, marginal_distances[[1]], marginal_distan
   training_idx = seq_len(N_train),
   test_idx = N_train + seq_len(N_test),
   y_train = angles[seq_len(N_train)], runs = 50L, cores = 2L)
+str(total_fit)
+#> List of 6
+#>  $ test_predictions: num [1:20] 0.247 0.69 0.247 0.549 0.085 ...
+#>  $ RMSE            : logi NA
+#>  $ length_scale    : Named num [1:3] 0.421 3.836 5.488
+#>   ..- attr(*, "names")= chr [1:3] "length_scale1" "length_scale2" "length_scale3"
+#>  $ variance        : Named num [1:3] 0.00117 0.24743 0.1248
+#>   ..- attr(*, "names")= chr [1:3] "variance1" "variance2" "variance3"
+#>  $ lambda2         : Named num 8.42e-08
+#>   ..- attr(*, "names")= chr "lambda2"
+#>  $ nll             : num -63.1
 ```

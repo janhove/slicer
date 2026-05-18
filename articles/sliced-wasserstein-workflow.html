@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>(Sliced) Wasserstein - Gaussian process regression workflow • slicer</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="(Sliced) Wasserstein - Gaussian process regression workflow">
 </head>
@@ -111,9 +111,9 @@ and once using one of
 <span><span class="va">op</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>no.readonly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu">generate_data</span><span class="op">(</span>angle <span class="op">=</span> <span class="va">pi</span><span class="op">/</span><span class="fl">16</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span>xlab <span class="op">=</span> <span class="st">"first dimension"</span>, ylab <span class="op">=</span> <span class="st">"second dimension"</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span>xlab <span class="op">=</span> <span class="st">"first dimension"</span>, ylab <span class="op">=</span> <span class="st">"second dimension"</span>, asp <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="fu">generate_data</span><span class="op">(</span>angle <span class="op">=</span> <span class="fl">3</span><span class="op">*</span><span class="va">pi</span><span class="op">/</span><span class="fl">8</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span>xlab <span class="op">=</span> <span class="st">"first dimension"</span>, ylab <span class="op">=</span> <span class="st">"second dimension"</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span>xlab <span class="op">=</span> <span class="st">"first dimension"</span>, ylab <span class="op">=</span> <span class="st">"second dimension"</span>, asp <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
 <p><img src="sliced-wasserstein-workflow_files/figure-html/unnamed-chunk-3-1.png" class="r-plt" alt="" width="864"></p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span><span class="va">op</span><span class="op">)</span></span></code></pre></div>
@@ -148,9 +148,10 @@ Each empirical distribution is based on 200 data points.</p>
 <h2 id="distances">Distances<a class="anchor" aria-label="anchor" href="#distances"></a>
 </h2>
 <p>We can use <code><a href="../reference/compute_all_distances.html">compute_all_distances()</a></code> to compute pairwise
-distances between all 60 input distributions. (Technically, we don’t
-really need the pairwise distances between the twenty inputs used for
-testing.) To compute <strong>sliced Wasserstein distances</strong>, we
+distances between the input distributions. If we supply the optional
+vector <code>test_idx</code> with the test set indices, the pairwise
+distance computations between test objects (which are not needed) are
+skipped. To compute <strong>sliced Wasserstein distances</strong>, we
 need to first generate
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>θ</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>θ</mi><mi>L</mi></msub></mrow><annotation encoding="application/x-tex">\theta_1, \dots, \theta_L</annotation></semantics></math>
 sampled uniformly at random from the unit sphere;
@@ -164,12 +165,14 @@ estimated sliced Wasserstein distances, we can set
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">thetas</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generate_directions.html">generate_directions</a></span><span class="op">(</span>L <span class="op">=</span> <span class="fl">25</span>, d <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
 <span><span class="va">sw_distances</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/compute_all_distances.html">compute_all_distances</a></span><span class="op">(</span><span class="va">distributions</span>, <span class="va">thetas</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>    keep_projections <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<span>    keep_projections <span class="op">=</span> <span class="cn">FALSE</span>, test_idx <span class="op">=</span> <span class="va">N_train</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_test</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>The
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>60</mn><mo>×</mo><mn>60</mn></mrow><annotation encoding="application/x-tex">60 \times 60</annotation></semantics></math>
 matrix <code>sw_distances</code> contains the <em>squared</em>
-(estimated) sliced Wasserstein distances between the forty empirical
-distributions.</p>
+(estimated) sliced Wasserstein distances among the forty training
+objects and between the training objects and the twenty test objects.
+The pairwise distances among the test objects are set to
+<code>NA</code>.</p>
 <p>We can also compute (normal) <strong>Wasserstein distances</strong>
 between the distributions when they are projected along certain
 dimensions. For instances, to compute the pairwise Wasserstein distances
@@ -183,7 +186,8 @@ function to output a list of two matrices with <em>squared</em>
 Wasserstein distances: one for each margin.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">marginal_distances</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/compute_all_distances.html">compute_all_distances</a></span><span class="op">(</span><span class="va">distributions</span>, <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span>, </span>
-<span>    verbose <span class="op">=</span> <span class="cn">FALSE</span>, keep_projections <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span>    verbose <span class="op">=</span> <span class="cn">FALSE</span>, keep_projections <span class="op">=</span> <span class="cn">TRUE</span>, </span>
+<span>    test_idx <span class="op">=</span> <span class="va">N_train</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_test</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">marginal_distances</span><span class="op">)</span></span>
 <span><span class="co">#&gt; List of 2</span></span>
 <span><span class="co">#&gt;  $ : num [1:60, 1:60] 0 1.274 0.931 0.548 0.649 ...</span></span>
@@ -231,7 +235,7 @@ provided), and the estimated hyperparameters.</p>
 <span><span class="co">#&gt;   ..- attr(*, "names")= chr "lambda2"</span></span>
 <span><span class="co">#&gt;  $ nll             : num -58.8</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">angles</span><span class="op">[</span><span class="va">N_train</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_test</span><span class="op">)</span><span class="op">]</span>, <span class="va">sw_fit</span><span class="op">$</span><span class="va">test_predictions</span>,</span>
-<span>     xlab <span class="op">=</span> <span class="st">"true test outcomes"</span>, ylab <span class="op">=</span> <span class="st">"predicted test outcomes"</span><span class="op">)</span></span></code></pre></div>
+<span>     xlab <span class="op">=</span> <span class="st">"true test outcomes"</span>, ylab <span class="op">=</span> <span class="st">"predicted test outcomes"</span>, asp <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
 <p><img src="sliced-wasserstein-workflow_files/figure-html/unnamed-chunk-9-1.png" class="r-plt" alt="" width="700"></p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">rmse</span><span class="op">(</span><span class="va">sw_fit</span><span class="op">$</span><span class="va">test_predictions</span>, <span class="va">angles</span><span class="op">[</span><span class="va">N_train</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_test</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
@@ -271,7 +275,7 @@ Gaussian RBF corresponding to each squared distance matrix.</p>
 <span><span class="co">#&gt;   ..- attr(*, "names")= chr "lambda2"</span></span>
 <span><span class="co">#&gt;  $ nll             : num -61.5</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">angles</span><span class="op">[</span><span class="va">N_train</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_test</span><span class="op">)</span><span class="op">]</span>, <span class="va">marginal_fit</span><span class="op">$</span><span class="va">test_predictions</span>,</span>
-<span>     xlab <span class="op">=</span> <span class="st">"true test outcomes"</span>, ylab <span class="op">=</span> <span class="st">"predicted test outcomes"</span><span class="op">)</span></span></code></pre></div>
+<span>     xlab <span class="op">=</span> <span class="st">"true test outcomes"</span>, ylab <span class="op">=</span> <span class="st">"predicted test outcomes"</span>, asp <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
 <p><img src="sliced-wasserstein-workflow_files/figure-html/unnamed-chunk-10-1.png" class="r-plt" alt="" width="700"></p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">rmse</span><span class="op">(</span><span class="va">marginal_fit</span><span class="op">$</span><span class="va">test_predictions</span>, <span class="va">angles</span><span class="op">[</span><span class="va">N_train</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_test</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
@@ -309,7 +313,7 @@ list with three distance matrices, too:</p>
 <span><span class="co">#&gt;   ..- attr(*, "names")= chr "lambda2"</span></span>
 <span><span class="co">#&gt;  $ nll             : num -63.1</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">angles</span><span class="op">[</span><span class="va">N_train</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_test</span><span class="op">)</span><span class="op">]</span>, <span class="va">total_fit</span><span class="op">$</span><span class="va">test_predictions</span>,</span>
-<span>     xlab <span class="op">=</span> <span class="st">"true test outcomes"</span>, ylab <span class="op">=</span> <span class="st">"predicted test outcomes"</span><span class="op">)</span></span></code></pre></div>
+<span>     xlab <span class="op">=</span> <span class="st">"true test outcomes"</span>, ylab <span class="op">=</span> <span class="st">"predicted test outcomes"</span>, asp <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
 <p><img src="sliced-wasserstein-workflow_files/figure-html/unnamed-chunk-11-1.png" class="r-plt" alt="" width="700"></p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">rmse</span><span class="op">(</span><span class="va">total_fit</span><span class="op">$</span><span class="va">test_predictions</span>, <span class="va">angles</span><span class="op">[</span><span class="va">N_train</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_test</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
@@ -320,7 +324,18 @@ parameter:</p>
 <code class="sourceCode R"><span><span class="va">total_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fit_gpr.html">fit_gpr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">sw_distances</span>, <span class="va">marginal_distances</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>, <span class="va">marginal_distances</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>,</span>
 <span>  training_idx <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_train</span><span class="op">)</span>,</span>
 <span>  test_idx <span class="op">=</span> <span class="va">N_train</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_test</span><span class="op">)</span>,</span>
-<span>  y_train <span class="op">=</span> <span class="va">angles</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_train</span><span class="op">)</span><span class="op">]</span>, runs <span class="op">=</span> <span class="fl">50L</span>, cores <span class="op">=</span> <span class="fl">2L</span><span class="op">)</span></span></code></pre></div>
+<span>  y_train <span class="op">=</span> <span class="va">angles</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_train</span><span class="op">)</span><span class="op">]</span>, runs <span class="op">=</span> <span class="fl">50L</span>, cores <span class="op">=</span> <span class="fl">2L</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">total_fit</span><span class="op">)</span></span>
+<span><span class="co">#&gt; List of 6</span></span>
+<span><span class="co">#&gt;  $ test_predictions: num [1:20] 0.247 0.69 0.247 0.549 0.085 ...</span></span>
+<span><span class="co">#&gt;  $ RMSE            : logi NA</span></span>
+<span><span class="co">#&gt;  $ length_scale    : Named num [1:3] 0.421 3.836 5.488</span></span>
+<span><span class="co">#&gt;   ..- attr(*, "names")= chr [1:3] "length_scale1" "length_scale2" "length_scale3"</span></span>
+<span><span class="co">#&gt;  $ variance        : Named num [1:3] 0.00117 0.24743 0.1248</span></span>
+<span><span class="co">#&gt;   ..- attr(*, "names")= chr [1:3] "variance1" "variance2" "variance3"</span></span>
+<span><span class="co">#&gt;  $ lambda2         : Named num 8.42e-08</span></span>
+<span><span class="co">#&gt;   ..- attr(*, "names")= chr "lambda2"</span></span>
+<span><span class="co">#&gt;  $ nll             : num -63.1</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
