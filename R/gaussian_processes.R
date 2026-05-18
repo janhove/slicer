@@ -345,9 +345,9 @@ fit_gpr_single <- function(
   list(
     test_predictions = predictions,
     RMSE = if (is.null(y_test)) NA else sqrt(mean((predictions - y_test)^2)),
-    length_scale = length_scale,
-    variance = variance,
-    lambda2 = lambda2,
+    length_scale = unname(length_scale),
+    scaling_factor = unname(variance),
+    noise_variance = unname(lambda2),
     nll = params$nll
   )
 }
@@ -412,9 +412,9 @@ fit_gpr_multiple <- function(
   list(
     test_predictions = predictions,
     RMSE = if (is.null(y_test)) NA else sqrt(mean((predictions - y_test)^2)),
-    length_scale = length_scale,
-    variance = variance,
-    lambda2 = lambda2,
+    length_scale = unname(length_scale),
+    scaling_factor = unname(variance),
+    noise_variance = unname(lambda2),
     nll = params$nll
   )
 }
