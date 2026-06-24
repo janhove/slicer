@@ -4,21 +4,38 @@
 \alias{gpr_predict}
 \title{Predict Outcomes Using Gaussian Process Regression}
 \usage{
-gpr_predict(Kxx, Kxstar, y_train, centre = TRUE, lambda2 = 1e-06)
+gpr_predict(
+  Kxx,
+  Kxstar,
+  y_train,
+  centre = TRUE,
+  lambda2 = 1e-06,
+  Kxstarstar = NULL
+)
 }
 \arguments{
 \item{Kxx}{Kernel matrix evaluated at the training inputs.}
 
-\item{Kxstar}{Matrix of kernel values between test and training inputs. Each row corresponds to one test input.}
+\item{Kxstar}{Matrix of kernel values between test and training inputs.
+Each row corresponds to one test input.}
 
 \item{y_train}{Vector with training outcomes.}
 
 \item{centre}{If \code{TRUE}, the training outcomes are centred around their mean.}
 
 \item{lambda2}{Kernel noise variance.}
+
+\item{Kxstarstar}{Optional. Either a vector with the kernel values for the
+each test input or the full square matrix of kernel values among the
+test inputs. If \code{NULL} (default), only posterior means are computed
+and returned as a vector. Else both posterior means and variances are
+returned.}
 }
 \value{
-A vector with posterior mean predictions for the test inputs.
+If \code{Kxstarstar} is \code{NULL} (default), a vector with posterior mean
+predictions for the test inputs. Else, a list with two vectors:
+\code{mean} with posterior mean predictions, and \code{var} with posterior variances
+for the test inputs.
 }
 \description{
 Computes posterior mean predictions from a Gaussian process regression model
@@ -35,8 +52,15 @@ distance <- outer(c(x_train, x_test), c(x_train, x_test), "-") |> abs()
 kernel <- rbf(distance, length_scale = 1, variance = 1)
 Kxx    <- kernel[1:N1, 1:N1]
 Kxstar <- kernel[(N1+1):(N1+N2), 1:N1]
+Kxstarstar <- kernel[(N1+1):(N1+N2), (N1+1):(N1+N2)]
 y_train <- ifelse(x_train == 0, 2*pi, sin(2*pi*x_train) / x_train)
 curve(sin(2*pi*x)/x, from = -pi, to = pi)
 points(x_train, y_train)
+# Only means: don't use Kxstarstar
 points(x_test, gpr_predict(Kxx, Kxstar, y_train), pch = 16)
+# Add credible intervals around predictions:
+gpr_fit <- gpr_predict(Kxx, Kxstar, y_train, Kxstarstar = Kxstarstar)
+segments(x0 = x_test,
+         y0 = gpr_fit$mean - 2 * sqrt(gpr_fit$var),
+         y1 = gpr_fit$mean + 2 * sqrt(gpr_fit$var), col = "#4DAF4A")
 }

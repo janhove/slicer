@@ -6,12 +6,21 @@
 #' automatic jitter escalation to handle near-singular kernel matrices.
 #'
 #' @param Kxx Kernel matrix evaluated at the training inputs.
-#' @param Kxstar Matrix of kernel values between test and training inputs. Each row corresponds to one test input.
+#' @param Kxstar Matrix of kernel values between test and training inputs.
+#'  Each row corresponds to one test input.
 #' @param y_train Vector with training outcomes.
 #' @param centre If `TRUE`, the training outcomes are centred around their mean.
 #' @param lambda2 Kernel noise variance.
+#' @param Kxstarstar Optional. Either a vector with the kernel values for the
+#'  each test input or the full square matrix of kernel values among the
+#'  test inputs. If `NULL` (default), only posterior means are computed
+#'  and returned as a vector. Else both posterior means and variances are
+#'  returned.
 #'
-#' @return A vector with posterior mean predictions for the test inputs.
+#' @return If `Kxstarstar` is `NULL` (default), a vector with posterior mean
+#'  predictions for the test inputs. Else, a list with two vectors:
+#'  `mean` with posterior mean predictions, and `var` with posterior variances
+#'  for the test inputs.
 #' @export
 #'
 #' @examples
@@ -23,11 +32,18 @@
 #' kernel <- rbf(distance, length_scale = 1, variance = 1)
 #' Kxx    <- kernel[1:N1, 1:N1]
 #' Kxstar <- kernel[(N1+1):(N1+N2), 1:N1]
+#' Kxstarstar <- kernel[(N1+1):(N1+N2), (N1+1):(N1+N2)]
 #' y_train <- ifelse(x_train == 0, 2*pi, sin(2*pi*x_train) / x_train)
 #' curve(sin(2*pi*x)/x, from = -pi, to = pi)
 #' points(x_train, y_train)
+#' # Only means: don't use Kxstarstar
 #' points(x_test, gpr_predict(Kxx, Kxstar, y_train), pch = 16)
-gpr_predict <- function(Kxx, Kxstar, y_train, centre = TRUE, lambda2 = 1e-6) {
+#' # Add credible intervals around predictions:
+#' gpr_fit <- gpr_predict(Kxx, Kxstar, y_train, Kxstarstar = Kxstarstar)
+#' segments(x0 = x_test,
+#'          y0 = gpr_fit$mean - 2 * sqrt(gpr_fit$var),
+#'          y1 = gpr_fit$mean + 2 * sqrt(gpr_fit$var), col = "#4DAF4A")
+gpr_predict <- function(Kxx, Kxstar, y_train, centre = TRUE, lambda2 = 1e-6, Kxstarstar = NULL) {
   if (centre) {
     y_mean <- mean(y_train)
     y_train <- y_train - y_mean
@@ -50,7 +66,24 @@ gpr_predict <- function(Kxx, Kxstar, y_train, centre = TRUE, lambda2 = 1e-6) {
     }
   )
   alpha <- backsolve(U, backsolve(U, y_train, transpose = TRUE))
-  as.vector((Kxstar %*% alpha) + y_mean)
+  mean_pred <- as.vector((Kxstar %*% alpha) + y_mean)
+
+  if (is.null(Kxstarstar)) return(mean_pred)
+
+  if (is.matrix(Kxstarstar)) {
+    if (nrow(Kxstarstar) != ncol(Kxstarstar)) {
+      stop("Kxstarstar must be either a vector or square.")
+    }
+    Kxstarstar <- diag(Kxstarstar)
+  }
+  if (length(Kxstarstar) != length(mean_pred)) {
+    stop("Kxstarstar must have one entry per test input.")
+  }
+
+  V <- backsolve(U, t(Kxstar), transpose = TRUE)
+  var_pred <- Kxstarstar - colSums(V^2)
+  var_pred <- pmax(var_pred, 0)
+  list(mean = mean_pred, var = var_pred)
 }
 
 #' Estimate Gaussian process hyperparameters when using Gaussian RBF kernel
@@ -308,8 +341,9 @@ find_gpr_hyperparameters_multiple <- function(
 #' @param runs Number of independent attempts to find a minimum when optimising the hyperparameters.
 #' @param verbose If `TRUE`, progress is shown on the console.
 #'
-#' @return A list containing the predictions for the test objects,
-#'     the root mean squared error (if the true test outcomes are provided),
+#' @return A list containing the predictions for the test objects as well as
+#'     their variance, the root mean squared error
+#'     (if the true test outcomes are provided),
 #'     and the three tuned hyperparameter values.
 #'
 #' @examples
@@ -340,11 +374,14 @@ fit_gpr_single <- function(
   my_kernel <- rbf(D2, length_scale = length_scale, variance = variance)
   Kxx <- my_kernel[training_idx, training_idx]
   Kxstar <- my_kernel[test_idx, training_idx]
-  predictions <- gpr_predict(Kxx, Kxstar, y_train, centre = centre, lambda2 = lambda2)
+  Kxstarstar <- my_kernel[test_idx, test_idx]
+  predictions <- gpr_predict(Kxx, Kxstar, y_train, centre = centre,
+    lambda2 = lambda2, Kxstarstar)
 
   list(
-    test_predictions = predictions,
-    RMSE = if (is.null(y_test)) NA else sqrt(mean((predictions - y_test)^2)),
+    test_predictions = predictions$mean,
+    test_variance = predictions$var,
+    RMSE = if (is.null(y_test)) NA else sqrt(mean((predictions$mean - y_test)^2)),
     length_scale = unname(length_scale),
     scaling_factor = unname(variance),
     noise_variance = unname(lambda2),
@@ -407,11 +444,14 @@ fit_gpr_multiple <- function(
   my_kernel <- rbf_multiple(D2_list, length_scales = length_scale, variances = variance)
   Kxx <- my_kernel[training_idx, training_idx]
   Kxstar <- my_kernel[test_idx, training_idx]
-  predictions <- gpr_predict(Kxx, Kxstar, y_train, centre = centre, lambda2 = lambda2)
+  Kxstarstar <- my_kernel[test_idx, test_idx]
+  predictions <- gpr_predict(Kxx, Kxstar, y_train, centre = centre,
+    lambda2 = lambda2, Kxstarstar)
 
   list(
-    test_predictions = predictions,
-    RMSE = if (is.null(y_test)) NA else sqrt(mean((predictions - y_test)^2)),
+    test_predictions = predictions$mean,
+    test_variance = predictions$var,
+    RMSE = if (is.null(y_test)) NA else sqrt(mean((predictions$mean - y_test)^2)),
     length_scale = unname(length_scale),
     scaling_factor = unname(variance),
     noise_variance = unname(lambda2),
@@ -437,9 +477,10 @@ fit_gpr_multiple <- function(
 #' @param cores Number of cores used for parallel processing.
 #' @param verbose If `TRUE`, progress is shown on the console. Only works if `cores == 1L`.
 #'
-#' @return A list containing the predictions for the test objects,
-#'     the root mean squared error (if the true test outcomes are provided),
-#'     the tuned hyperparameter values, and the negative log marginal likelihood (nll).
+#' @return A list containing the predictions for the test objects as well as
+#'     their variance, the root mean squared error
+#'     (if the true test outcomes are provided),
+#'     and the three tuned hyperparameter values.
 #' @export
 #'
 #' @examples
@@ -457,7 +498,11 @@ fit_gpr_multiple <- function(
 #' # Single core
 #' fit <- fit_gpr(list(D2_1, D2_2), seq_len(N1), N1 + seq_len(N2),
 #'   y_train, y_test, runs = 50)
-#' plot(fit$test_predictions, y_test)
+#' plot(y_test, fit$test_predictions)
+#' abline(a = 0, b = 1, lty = 1)
+#' segments(x0 = y_test,
+#'   y0 = fit$test_predictions - 2 * sqrt(fit$test_variance),
+#'   y1 = fit$test_predictions + 2 * sqrt(fit$test_variance), lty = 2)
 #' fit
 #' # Multiple cores
 #' fit <- fit_gpr(list(D2_1, D2_2), seq_len(N1), N1 + seq_len(N2),
@@ -503,16 +548,32 @@ fit_gpr <- function(
   runs_per_core <- ceiling(runs / cores)
   cl <- parallel::makeCluster(cores)
   on.exit(parallel::stopCluster(cl))
-  results <- parallel::parLapply(cl, seq_len(cores),
-    function(i, D2, training_idx, test_idx, y_train, y_test, centre, use_gradient, runs_per_core, verbose) {
-      fit_gpr(D2, training_idx, test_idx, y_train, y_test,
-        centre = centre, use_gradient = use_gradient,
-        runs = runs_per_core, cores = 1L, verbose = FALSE)
-  },
-  D2 = D2, training_idx = training_idx, test_idx = test_idx,
-  y_train = y_train, y_test = y_test, centre = centre,
-  use_gradient = use_gradient, runs_per_core = runs_per_core,
-  verbose = verbose)
+  parallel::clusterEvalQ(cl, library(slicer))
+
+  results <- parallel::parLapply(
+    cl, seq_len(cores),
+    function(i, D2, training_idx, test_idx, y_train, y_test,
+             centre, use_gradient, runs_per_core) {
+
+      if (is.list(D2)) {
+        fit_gpr_multiple(
+          D2, training_idx, test_idx, y_train, y_test,
+          centre = centre, use_gradient = use_gradient,
+          runs = runs_per_core, verbose = FALSE
+        )
+      } else {
+        fit_gpr_single(
+          D2, training_idx, test_idx, y_train, y_test,
+          centre = centre, use_gradient = use_gradient,
+          runs = runs_per_core, verbose = FALSE
+        )
+      }
+    },
+    D2 = D2, training_idx = training_idx, test_idx = test_idx,
+    y_train = y_train, y_test = y_test,
+    centre = centre, use_gradient = use_gradient,
+    runs_per_core = runs_per_core
+  )
   best_idx <- which.min(sapply(results, `[[`, "nll"))
   results[[best_idx]]
 }

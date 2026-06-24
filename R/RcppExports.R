@@ -2,6 +2,6 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 nw_corner_distance_cpp <- function(x, y, presorted = FALSE, p = 2.0, eps = 1.490116e-08) {
-    .Call('_slicer_nw_corner_distance_cpp', PACKAGE = 'slicer', x, y, presorted, p, eps)
+    .Call(`_slicer_nw_corner_distance_cpp`, x, y, presorted, p, eps)
 }
 

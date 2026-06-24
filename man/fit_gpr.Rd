@@ -40,9 +40,10 @@ Else, the optimiser uses the finite-differences method.}
 \item{verbose}{If \code{TRUE}, progress is shown on the console. Only works if \code{cores == 1L}.}
 }
 \value{
-A list containing the predictions for the test objects,
-the root mean squared error (if the true test outcomes are provided),
-the tuned hyperparameter values, and the negative log marginal likelihood (nll).
+A list containing the predictions for the test objects as well as
+their variance, the root mean squared error
+(if the true test outcomes are provided),
+and the three tuned hyperparameter values.
 }
 \description{
 This function generates predictions using a Gaussian process model
@@ -64,7 +65,11 @@ D2_2 <- outer(c(x_train2, x_test2), c(x_train2, x_test2), "-")^2
 # Single core
 fit <- fit_gpr(list(D2_1, D2_2), seq_len(N1), N1 + seq_len(N2),
   y_train, y_test, runs = 50)
-plot(fit$test_predictions, y_test)
+plot(y_test, fit$test_predictions)
+abline(a = 0, b = 1, lty = 1)
+segments(x0 = y_test,
+  y0 = fit$test_predictions - 2 * sqrt(fit$test_variance),
+  y1 = fit$test_predictions + 2 * sqrt(fit$test_variance), lty = 2)
 fit
 # Multiple cores
 fit <- fit_gpr(list(D2_1, D2_2), seq_len(N1), N1 + seq_len(N2),
