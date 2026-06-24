@@ -74,9 +74,9 @@ fit_gpr(
 
 ## Value
 
-A list containing the predictions for the test objects, the root mean
-squared error (if the true test outcomes are provided), the tuned
-hyperparameter values, and the negative log marginal likelihood (nll).
+A list containing the predictions for the test objects as well as their
+variance, the root mean squared error (if the true test outcomes are
+provided), and the three tuned hyperparameter values.
 
 ## Examples
 
@@ -147,12 +147,20 @@ fit <- fit_gpr(list(D2_1, D2_2), seq_len(N1), N1 + seq_len(N2),
 #> Hyperparameter search 48 of 50.
 #> Hyperparameter search 49 of 50.
 #> Hyperparameter search 50 of 50.
-plot(fit$test_predictions, y_test)
+plot(y_test, fit$test_predictions)
+abline(a = 0, b = 1, lty = 1)
+segments(x0 = y_test,
+  y0 = fit$test_predictions - 2 * sqrt(fit$test_variance),
+  y1 = fit$test_predictions + 2 * sqrt(fit$test_variance), lty = 2)
 
 fit
 #> $test_predictions
 #>  [1]  0.103819650 -0.132069036 -0.003162020  0.001227841  0.005412415
 #>  [6]  0.006466601 -0.231317504 -0.120333455 -0.010845450 -0.041972268
+#> 
+#> $test_variance
+#>  [1] 0.007163161 0.006804186 0.004648127 0.009012775 0.006179768 0.005682890
+#>  [7] 0.010458214 0.006668123 0.006230363 0.010211804
 #> 
 #> $RMSE
 #> [1] 0.1799737
@@ -174,20 +182,24 @@ fit <- fit_gpr(list(D2_1, D2_2), seq_len(N1), N1 + seq_len(N2),
   y_train, y_test, runs = 50, cores = 2)
 fit
 #> $test_predictions
-#>  [1]  0.103819637 -0.132069045 -0.003162046  0.001227850  0.005412481
-#>  [6]  0.006466561 -0.231317507 -0.120333474 -0.010845472 -0.041972372
+#>  [1]  0.103819060 -0.132069083 -0.003162169  0.001227516  0.005412400
+#>  [6]  0.006467170 -0.231318518 -0.120333487 -0.010845072 -0.041972633
+#> 
+#> $test_variance
+#>  [1] 0.007163128 0.006804160 0.004648100 0.009012785 0.006179769 0.005682877
+#>  [7] 0.010458212 0.006668099 0.006230363 0.010211775
 #> 
 #> $RMSE
-#> [1] 0.1799737
+#> [1] 0.179974
 #> 
 #> $length_scale
-#> [1] 1.2459726 0.0581704
+#> [1] 1.24598287 0.05817023
 #> 
 #> $scaling_factor
-#> [1] 0.03429812 0.01700075
+#> [1] 0.03429858 0.01700084
 #> 
 #> $noise_variance
-#> [1] 0.01004947
+#> [1] 0.01004945
 #> 
 #> $nll
 #> [1] -9.01705
@@ -208,5 +220,5 @@ points(x_train, y_train, pch = 1)
 points(x_test, fit$test_predictions, pch = 16)
 
 fit$RMSE
-#> [1] 1.556357e-07
+#> [1] 1.469273e-07
 ```

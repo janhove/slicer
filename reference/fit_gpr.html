@@ -109,9 +109,10 @@ Else, the optimiser uses the finite-differences method.</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A list containing the predictions for the test objects,
-the root mean squared error (if the true test outcomes are provided),
-the tuned hyperparameter values, and the negative log marginal likelihood (nll).</p>
+    <p>A list containing the predictions for the test objects as well as
+their variance, the root mean squared error
+(if the true test outcomes are provided),
+and the three tuned hyperparameter values.</p>
     </div>
 
     <div class="section level2">
@@ -182,12 +183,20 @@ the tuned hyperparameter values, and the negative log marginal likelihood (nll).
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 48 of 50.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 49 of 50.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 50 of 50.</span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">test_predictions</span>, <span class="va">y_test</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">y_test</span>, <span class="va">fit</span><span class="op">$</span><span class="va">test_predictions</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/abline.html" class="external-link">abline</a></span><span class="op">(</span>a <span class="op">=</span> <span class="fl">0</span>, b <span class="op">=</span> <span class="fl">1</span>, lty <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/segments.html" class="external-link">segments</a></span><span class="op">(</span>x0 <span class="op">=</span> <span class="va">y_test</span>,</span></span>
+<span class="r-in"><span>  y0 <span class="op">=</span> <span class="va">fit</span><span class="op">$</span><span class="va">test_predictions</span> <span class="op">-</span> <span class="fl">2</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">test_variance</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  y1 <span class="op">=</span> <span class="va">fit</span><span class="op">$</span><span class="va">test_predictions</span> <span class="op">+</span> <span class="fl">2</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">test_variance</span><span class="op">)</span>, lty <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="fit_gpr-1.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="va">fit</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $test_predictions</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  [1]  0.103819650 -0.132069036 -0.003162020  0.001227841  0.005412415</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  [6]  0.006466601 -0.231317504 -0.120333455 -0.010845450 -0.041972268</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $test_variance</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [1] 0.007163161 0.006804186 0.004648127 0.009012775 0.006179768 0.005682890</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [7] 0.010458214 0.006668123 0.006230363 0.010211804</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $RMSE</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.1799737</span>
@@ -209,20 +218,24 @@ the tuned hyperparameter values, and the negative log marginal likelihood (nll).
 <span class="r-in"><span>  <span class="va">y_train</span>, <span class="va">y_test</span>, runs <span class="op">=</span> <span class="fl">50</span>, cores <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">fit</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $test_predictions</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [1]  0.103819637 -0.132069045 -0.003162046  0.001227850  0.005412481</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  [6]  0.006466561 -0.231317507 -0.120333474 -0.010845472 -0.041972372</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [1]  0.103819060 -0.132069083 -0.003162169  0.001227516  0.005412400</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [6]  0.006467170 -0.231318518 -0.120333487 -0.010845072 -0.041972633</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $test_variance</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [1] 0.007163128 0.006804160 0.004648100 0.009012785 0.006179769 0.005682877</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [7] 0.010458212 0.006668099 0.006230363 0.010211775</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $RMSE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.1799737</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.179974</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $length_scale</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1.2459726 0.0581704</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1.24598287 0.05817023</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $scaling_factor</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.03429812 0.01700075</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.03429858 0.01700084</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $noise_variance</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.01004947</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.01004945</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $nll</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] -9.01705</span>
@@ -243,7 +256,7 @@ the tuned hyperparameter values, and the negative log marginal likelihood (nll).
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/points.html" class="external-link">points</a></span><span class="op">(</span><span class="va">x_test</span>, <span class="va">fit</span><span class="op">$</span><span class="va">test_predictions</span>, pch <span class="op">=</span> <span class="fl">16</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="fit_gpr-2.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="va">fit</span><span class="op">$</span><span class="va">RMSE</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1.556357e-07</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1.469273e-07</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

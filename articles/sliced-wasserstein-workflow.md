@@ -177,8 +177,9 @@ provided), and the estimated hyperparameters.
 ``` r
 
 str(sw_fit)
-#> List of 6
+#> List of 7
 #>  $ test_predictions: num [1:20] 0.241 0.7091 0.2402 0.5074 0.0604 ...
+#>  $ test_variance   : num [1:20] 0.001337 0.002175 0.000941 0.002484 0.000993 ...
 #>  $ RMSE            : logi NA
 #>  $ length_scale    : num 1.57
 #>  $ scaling_factor  : num 0.0758
@@ -224,8 +225,9 @@ marginal_fit <- fit_gpr(marginal_distances,
 #> Hyperparameter search 9 of 10.
 #> Hyperparameter search 10 of 10.
 str(marginal_fit)
-#> List of 6
+#> List of 7
 #>  $ test_predictions: num [1:20] 0.2395 0.6678 0.2429 0.5619 0.0919 ...
+#>  $ test_variance   : num [1:20] 0.000587 0.001118 0.0005 0.000667 0.000719 ...
 #>  $ RMSE            : logi NA
 #>  $ length_scale    : num [1:2] 3.9 6.09
 #>  $ scaling_factor  : num [1:2] 0.347 0.146
@@ -258,7 +260,7 @@ total_fit <- fit_gpr(list(sw_distances, marginal_distances[[1]], marginal_distan
 #> Hyperparameter search 2 of 10.
 #> Current optimum improved from -58.8320454 to -61.5129334.
 #> Hyperparameter search 3 of 10.
-#> Current optimum improved from -61.5129334 to -63.080251.
+#> Current optimum improved from -61.5129334 to -63.0802534.
 #> Hyperparameter search 4 of 10.
 #> Hyperparameter search 5 of 10.
 #> Hyperparameter search 6 of 10.
@@ -267,11 +269,12 @@ total_fit <- fit_gpr(list(sw_distances, marginal_distances[[1]], marginal_distan
 #> Hyperparameter search 9 of 10.
 #> Hyperparameter search 10 of 10.
 str(total_fit)
-#> List of 6
+#> List of 7
 #>  $ test_predictions: num [1:20] 0.247 0.69 0.247 0.549 0.085 ...
+#>  $ test_variance   : num [1:20] 0.00081 0.001711 0.000769 0.001279 0.000884 ...
 #>  $ RMSE            : logi NA
-#>  $ length_scale    : num [1:3] 0.421 3.833 5.482
-#>  $ scaling_factor  : num [1:3] 0.00118 0.24703 0.12446
+#>  $ length_scale    : num [1:3] 0.421 3.836 5.488
+#>  $ scaling_factor  : num [1:3] 0.00117 0.24744 0.12483
 #>  $ noise_variance  : num 3.32e-08
 #>  $ nll             : num -63.1
 plot(angles[N_train + seq_len(N_test)], total_fit$test_predictions,
@@ -283,7 +286,7 @@ plot(angles[N_train + seq_len(N_test)], total_fit$test_predictions,
 ``` r
 
 rmse(total_fit$test_predictions, angles[N_train + seq_len(N_test)])
-#> [1] 0.04697571
+#> [1] 0.04697913
 ```
 
 Parallel processing can be enabled using the `cores` parameter:
@@ -295,11 +298,12 @@ total_fit <- fit_gpr(list(sw_distances, marginal_distances[[1]], marginal_distan
   test_idx = N_train + seq_len(N_test),
   y_train = angles[seq_len(N_train)], runs = 50L, cores = 2L)
 str(total_fit)
-#> List of 6
-#>  $ test_predictions: num [1:20] 0.268 0.682 0.25 0.581 0.11 ...
+#> List of 7
+#>  $ test_predictions: num [1:20] 0.247 0.69 0.247 0.549 0.085 ...
+#>  $ test_variance   : num [1:20] 0.00081 0.001711 0.000769 0.001279 0.000884 ...
 #>  $ RMSE            : logi NA
-#>  $ length_scale    : num [1:3] 0.283 4.653 182.597
-#>  $ scaling_factor  : num [1:3] 6.77e-04 7.52e-01 7.39e-15
-#>  $ noise_variance  : num 4.2e-10
-#>  $ nll             : num -61.8
+#>  $ length_scale    : num [1:3] 0.421 3.836 5.488
+#>  $ scaling_factor  : num [1:3] 0.00117 0.24747 0.12483
+#>  $ noise_variance  : num 1.83e-07
+#>  $ nll             : num -63.1
 ```
