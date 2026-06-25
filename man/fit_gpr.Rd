@@ -68,8 +68,8 @@ fit <- fit_gpr(list(D2_1, D2_2), seq_len(N1), N1 + seq_len(N2),
 plot(y_test, fit$test_predictions)
 abline(a = 0, b = 1, lty = 1)
 segments(x0 = y_test,
-  y0 = fit$test_predictions - 2 * sqrt(fit$test_variance),
-  y1 = fit$test_predictions + 2 * sqrt(fit$test_variance), lty = 2)
+  y0 = fit$test_predictions - 2 * sqrt(diag(fit$test_variance)),
+  y1 = fit$test_predictions + 2 * sqrt(diag(fit$test_variance)), lty = 2)
 fit
 # Multiple cores
 fit <- fit_gpr(list(D2_1, D2_2), seq_len(N1), N1 + seq_len(N2),
@@ -77,17 +77,26 @@ fit <- fit_gpr(list(D2_1, D2_2), seq_len(N1), N1 + seq_len(N2),
 fit
 
 # Single kernel
-N1 <- 25
+N1 <- 40
 N2 <- 10
 x_train <- seq(-pi, pi, length.out = N1)
 x_test  <- runif(N2, -pi, pi)
-y_train <- x_train * plogis(x_train) * cos(x_train)
+y_train <- x_train * plogis(x_train) * cos(x_train) + rnorm(N1, sd = 0.5)
 y_test <- x_test * plogis(x_test) * cos(x_test)
 D2 <- outer(c(x_train, x_test), c(x_train, x_test), "-")^2
 fit <- fit_gpr(D2, seq_len(N1), N1 + seq_len(N2), y_train, y_test,
   runs = 50L, cores = 2)
-curve(x * plogis(x) * cos(x), -pi, pi)
+curve(x * plogis(x) * cos(x), -pi, pi,
+  ylim = range(
+    c(y_train, fit$test_predictions + 2 * sqrt(diag(fit$test_variance)),
+               fit$test_predictions - 2 * sqrt(diag(fit$test_variance)))
+   )
+ )
 points(x_train, y_train, pch = 1)
 points(x_test, fit$test_predictions, pch = 16)
+segments(x0 = x_test,
+  y0 = fit$test_predictions - 2 * sqrt(diag(fit$test_variance)),
+  y1 = fit$test_predictions + 2 * sqrt(diag(fit$test_variance)))
+fit
 fit$RMSE
 }

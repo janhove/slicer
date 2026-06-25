@@ -11,16 +11,15 @@
 #' @param y_train Vector with training outcomes.
 #' @param centre If `TRUE`, the training outcomes are centred around their mean.
 #' @param lambda2 Kernel noise variance.
-#' @param Kxstarstar Optional. Either a vector with the kernel values for the
-#'  each test input or the full square matrix of kernel values among the
+#' @param Kxstarstar Optional. A square matrix of kernel values among the
 #'  test inputs. If `NULL` (default), only posterior means are computed
-#'  and returned as a vector. Else both posterior means and variances are
-#'  returned.
+#'  and returned as a vector. Else both the posterior mean vector and covariance
+#'  matrix are returned.
 #'
 #' @return If `Kxstarstar` is `NULL` (default), a vector with posterior mean
-#'  predictions for the test inputs. Else, a list with two vectors:
-#'  `mean` with posterior mean predictions, and `var` with posterior variances
-#'  for the test inputs.
+#'  predictions for the test inputs. Else, a list with a vector
+#'  `mean` with posterior mean predictions and a matrix `var` with the posterior
+#'  covariance for the test inputs.
 #' @export
 #'
 #' @examples
@@ -41,8 +40,8 @@
 #' # Add credible intervals around predictions:
 #' gpr_fit <- gpr_predict(Kxx, Kxstar, y_train, Kxstarstar = Kxstarstar)
 #' segments(x0 = x_test,
-#'          y0 = gpr_fit$mean - 2 * sqrt(gpr_fit$var),
-#'          y1 = gpr_fit$mean + 2 * sqrt(gpr_fit$var), col = "#4DAF4A")
+#'          y0 = gpr_fit$mean - 2 * sqrt(diag(gpr_fit$var)),
+#'          y1 = gpr_fit$mean + 2 * sqrt(diag(gpr_fit$var)), col = "#4DAF4A")
 gpr_predict <- function(Kxx, Kxstar, y_train, centre = TRUE, lambda2 = 1e-6, Kxstarstar = NULL) {
   if (centre) {
     y_mean <- mean(y_train)
@@ -54,7 +53,7 @@ gpr_predict <- function(Kxx, Kxstar, y_train, centre = TRUE, lambda2 = 1e-6, Kxs
   U <- tryCatch(
     chol(Kxx + lambda2 * diag(n)),
     error = function(e) {
-      warning("Cholesky decomposition unsuccessful. Trying jitter (lambda2) escalation.")
+      warning("Cholesky decomposition unsuccessful. Trying jitter escalation.")
       for (multiplier in c(10, 100, 1000, 10000)) {
         result <- tryCatch(
           chol(Kxx + (lambda2 * multiplier) * diag(n)),
@@ -62,27 +61,29 @@ gpr_predict <- function(Kxx, Kxstar, y_train, centre = TRUE, lambda2 = 1e-6, Kxs
         )
         if (!is.null(result)) return(result)
       }
-      stop("Matrix not positive definite even after jitter (lambda2) escalation")
+      stop("Matrix not positive definite even after jitter escalation")
     }
   )
+
   alpha <- backsolve(U, backsolve(U, y_train, transpose = TRUE))
   mean_pred <- as.vector((Kxstar %*% alpha) + y_mean)
 
   if (is.null(Kxstarstar)) return(mean_pred)
 
-  if (is.matrix(Kxstarstar)) {
-    if (nrow(Kxstarstar) != ncol(Kxstarstar)) {
-      stop("Kxstarstar must be either a vector or square.")
-    }
-    Kxstarstar <- diag(Kxstarstar)
+  if (is.vector(Kxstarstar)) {
+    Kxstarstar <- matrix(Kxstarstar)
   }
-  if (length(Kxstarstar) != length(mean_pred)) {
-    stop("Kxstarstar must have one entry per test input.")
+  if (is.vector(Kxstar)) {
+    Kxstar <- matrix(Kxstar, nrow = 1)
+  }
+
+  if (nrow(Kxstarstar) != ncol(Kxstarstar)) {
+    stop("Kxstarstar must be square.")
   }
 
   V <- backsolve(U, t(Kxstar), transpose = TRUE)
-  var_pred <- Kxstarstar - colSums(V^2)
-  var_pred <- pmax(var_pred, 0)
+  var_pred <- Kxstarstar - crossprod(V)
+  var_pred <- (var_pred + t(var_pred)) / 2 # enforce symmetry
   list(mean = mean_pred, var = var_pred)
 }
 
@@ -501,8 +502,8 @@ fit_gpr_multiple <- function(
 #' plot(y_test, fit$test_predictions)
 #' abline(a = 0, b = 1, lty = 1)
 #' segments(x0 = y_test,
-#'   y0 = fit$test_predictions - 2 * sqrt(fit$test_variance),
-#'   y1 = fit$test_predictions + 2 * sqrt(fit$test_variance), lty = 2)
+#'   y0 = fit$test_predictions - 2 * sqrt(diag(fit$test_variance)),
+#'   y1 = fit$test_predictions + 2 * sqrt(diag(fit$test_variance)), lty = 2)
 #' fit
 #' # Multiple cores
 #' fit <- fit_gpr(list(D2_1, D2_2), seq_len(N1), N1 + seq_len(N2),
@@ -510,18 +511,27 @@ fit_gpr_multiple <- function(
 #' fit
 #'
 #' # Single kernel
-#' N1 <- 25
+#' N1 <- 40
 #' N2 <- 10
 #' x_train <- seq(-pi, pi, length.out = N1)
 #' x_test  <- runif(N2, -pi, pi)
-#' y_train <- x_train * plogis(x_train) * cos(x_train)
+#' y_train <- x_train * plogis(x_train) * cos(x_train) + rnorm(N1, sd = 0.5)
 #' y_test <- x_test * plogis(x_test) * cos(x_test)
 #' D2 <- outer(c(x_train, x_test), c(x_train, x_test), "-")^2
 #' fit <- fit_gpr(D2, seq_len(N1), N1 + seq_len(N2), y_train, y_test,
 #'   runs = 50L, cores = 2)
-#' curve(x * plogis(x) * cos(x), -pi, pi)
+#' curve(x * plogis(x) * cos(x), -pi, pi,
+#'   ylim = range(
+#'     c(y_train, fit$test_predictions + 2 * sqrt(diag(fit$test_variance)),
+#'                fit$test_predictions - 2 * sqrt(diag(fit$test_variance)))
+#'    )
+#'  )
 #' points(x_train, y_train, pch = 1)
 #' points(x_test, fit$test_predictions, pch = 16)
+#' segments(x0 = x_test,
+#'   y0 = fit$test_predictions - 2 * sqrt(diag(fit$test_variance)),
+#'   y1 = fit$test_predictions + 2 * sqrt(diag(fit$test_variance)))
+#' fit
 #' fit$RMSE
 fit_gpr <- function(
     D2, training_idx, test_idx, y_train, y_test = NULL,
