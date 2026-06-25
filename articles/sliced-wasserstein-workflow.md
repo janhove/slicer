@@ -302,8 +302,8 @@ str(total_fit)
 #>  $ test_predictions: num [1:20] 0.247 0.69 0.247 0.549 0.085 ...
 #>  $ test_variance   : num [1:20, 1:20] 0.00081 NA NA NA NA ...
 #>  $ RMSE            : logi NA
-#>  $ length_scale    : num [1:3] 0.421 3.834 5.484
-#>  $ scaling_factor  : num [1:3] 0.00117 0.24721 0.12467
-#>  $ noise_variance  : num 1.45e-07
+#>  $ length_scale    : num [1:3] 0.421 3.836 5.49
+#>  $ scaling_factor  : num [1:3] 0.00118 0.24758 0.12478
+#>  $ noise_variance  : num 5.2e-08
 #>  $ nll             : num -63.1
 ```

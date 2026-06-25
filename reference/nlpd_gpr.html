@@ -92,42 +92,43 @@ to ensure positive definiteness. Increased multiplicatively if required.</p></dd
 <span class="r-in"><span><span class="va">x_train</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="op">-</span><span class="va">pi</span>, <span class="va">pi</span>, length.out <span class="op">=</span> <span class="va">N1</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">x_test</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">N2</span>, <span class="op">-</span><span class="va">pi</span>, <span class="va">pi</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">y_train</span> <span class="op">&lt;-</span> <span class="va">x_train</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html" class="external-link">plogis</a></span><span class="op">(</span><span class="va">x_train</span><span class="op">)</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Trig.html" class="external-link">cos</a></span><span class="op">(</span><span class="va">x_train</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">N1</span>, sd <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">y_test</span> <span class="op">&lt;-</span> <span class="va">x_test</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html" class="external-link">plogis</a></span><span class="op">(</span><span class="va">x_test</span><span class="op">)</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Trig.html" class="external-link">cos</a></span><span class="op">(</span><span class="va">x_test</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">N2</span>, sd <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">y_test</span> <span class="op">&lt;-</span> <span class="va">x_test</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html" class="external-link">plogis</a></span><span class="op">(</span><span class="va">x_test</span><span class="op">)</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Trig.html" class="external-link">cos</a></span><span class="op">(</span><span class="va">x_test</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">D2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/outer.html" class="external-link">outer</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">x_train</span>, <span class="va">x_test</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">x_train</span>, <span class="va">x_test</span><span class="op">)</span>, <span class="st">"-"</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span></span></span>
 <span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="fit_gpr.html">fit_gpr</a></span><span class="op">(</span><span class="va">D2</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N1</span><span class="op">)</span>, <span class="va">N1</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N2</span><span class="op">)</span>, <span class="va">y_train</span>, <span class="va">y_test</span>,</span></span>
 <span class="r-in"><span>               runs <span class="op">=</span> <span class="fl">20L</span>, cores <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 1 of 20.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Optimum set at 65.1048849.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 2 of 20.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Current optimum improved from 65.1048849 to 57.4472943.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 3 of 20.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 4 of 20.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 5 of 20.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Current optimum improved from 65.1048849 to 65.1048849.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 6 of 20.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Current optimum improved from 65.1048849 to 40.4504072.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 7 of 20.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 8 of 20.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 9 of 20.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 10 of 20.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 11 of 20.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Current optimum improved from 57.4472943 to 40.4504072.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 12 of 20.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 13 of 20.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 14 of 20.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 15 of 20.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 16 of 20.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 17 of 20.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Current optimum improved from 40.4504072 to 40.4504072.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 18 of 20.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 19 of 20.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Hyperparameter search 20 of 20.</span>
-<span class="r-in"><span><span class="fu">nlpd_gpr</span><span class="op">(</span><span class="va">fit</span>, <span class="va">y_test</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.8382963</span>
+<span class="r-in"><span><span class="co"># noisy outcome</span></span></span>
+<span class="r-in"><span><span class="fu">nlpd_gpr</span><span class="op">(</span><span class="va">fit</span>, <span class="va">y_test</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">N2</span>, sd <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1.130341</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"jitter_used")</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0</span>
+<span class="r-in"><span><span class="co"># clean outcome</span></span></span>
 <span class="r-in"><span><span class="fu">nlpd_gpr</span><span class="op">(</span><span class="va">fit</span>, <span class="va">y_test</span>, add_noise <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Covariance matrix not positive definite. Trying jitter escalation.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Cholesky succeeded with jitter = 1e-10.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 503070092</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] -3.758439</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"jitter_used")</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1e-10</span>
 </code></pre></div>
