@@ -87,19 +87,18 @@ Each row corresponds to one test input.</p></dd>
 
 
 <dt id="arg-kxstarstar">Kxstarstar<a class="anchor" aria-label="anchor" href="#arg-kxstarstar"></a></dt>
-<dd><p>Optional. Either a vector with the kernel values for the
-each test input or the full square matrix of kernel values among the
+<dd><p>Optional. A square matrix of kernel values among the
 test inputs. If <code>NULL</code> (default), only posterior means are computed
-and returned as a vector. Else both posterior means and variances are
-returned.</p></dd>
+and returned as a vector. Else both the posterior mean vector and covariance
+matrix are returned.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>If <code>Kxstarstar</code> is <code>NULL</code> (default), a vector with posterior mean
-predictions for the test inputs. Else, a list with two vectors:
-<code>mean</code> with posterior mean predictions, and <code>var</code> with posterior variances
-for the test inputs.</p>
+predictions for the test inputs. Else, a list with a vector
+<code>mean</code> with posterior mean predictions and a matrix <code>var</code> with the posterior
+covariance for the test inputs.</p>
     </div>
 
     <div class="section level2">
@@ -121,8 +120,8 @@ for the test inputs.</p>
 <span class="r-in"><span><span class="co"># Add credible intervals around predictions:</span></span></span>
 <span class="r-in"><span><span class="va">gpr_fit</span> <span class="op">&lt;-</span> <span class="fu">gpr_predict</span><span class="op">(</span><span class="va">Kxx</span>, <span class="va">Kxstar</span>, <span class="va">y_train</span>, Kxstarstar <span class="op">=</span> <span class="va">Kxstarstar</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/segments.html" class="external-link">segments</a></span><span class="op">(</span>x0 <span class="op">=</span> <span class="va">x_test</span>,</span></span>
-<span class="r-in"><span>         y0 <span class="op">=</span> <span class="va">gpr_fit</span><span class="op">$</span><span class="va">mean</span> <span class="op">-</span> <span class="fl">2</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="va">gpr_fit</span><span class="op">$</span><span class="va">var</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>         y1 <span class="op">=</span> <span class="va">gpr_fit</span><span class="op">$</span><span class="va">mean</span> <span class="op">+</span> <span class="fl">2</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="va">gpr_fit</span><span class="op">$</span><span class="va">var</span><span class="op">)</span>, col <span class="op">=</span> <span class="st">"#4DAF4A"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>         y0 <span class="op">=</span> <span class="va">gpr_fit</span><span class="op">$</span><span class="va">mean</span> <span class="op">-</span> <span class="fl">2</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="va">gpr_fit</span><span class="op">$</span><span class="va">var</span><span class="op">)</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>         y1 <span class="op">=</span> <span class="va">gpr_fit</span><span class="op">$</span><span class="va">mean</span> <span class="op">+</span> <span class="fl">2</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="va">gpr_fit</span><span class="op">$</span><span class="va">var</span><span class="op">)</span><span class="op">)</span>, col <span class="op">=</span> <span class="st">"#4DAF4A"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="gpr_predict-1.png" alt="" width="700" height="433"></span>
 </code></pre></div>
     </div>

@@ -35,6 +35,9 @@ Please refer to the vignette for a brief tutorial.
   : Generate random projection directions
 - [`gpr_predict()`](https://janhove.github.io/slicer/reference/gpr_predict.md)
   : Predict Outcomes Using Gaussian Process Regression
+- [`nlpd_gpr()`](https://janhove.github.io/slicer/reference/nlpd_gpr.md)
+  : Negative log predictive density for Gaussian process regression
+  models
 - [`nw_corner_distance()`](https://janhove.github.io/slicer/reference/nw_corner_distance.md)
   : One-Dimensional Wasserstein Distance Using North-West Corner
   Algorithm

@@ -44,18 +44,17 @@ gpr_predict(
 
 - Kxstarstar:
 
-  Optional. Either a vector with the kernel values for the each test
-  input or the full square matrix of kernel values among the test
-  inputs. If `NULL` (default), only posterior means are computed and
-  returned as a vector. Else both posterior means and variances are
+  Optional. A square matrix of kernel values among the test inputs. If
+  `NULL` (default), only posterior means are computed and returned as a
+  vector. Else both the posterior mean vector and covariance matrix are
   returned.
 
 ## Value
 
 If `Kxstarstar` is `NULL` (default), a vector with posterior mean
-predictions for the test inputs. Else, a list with two vectors: `mean`
-with posterior mean predictions, and `var` with posterior variances for
-the test inputs.
+predictions for the test inputs. Else, a list with a vector `mean` with
+posterior mean predictions and a matrix `var` with the posterior
+covariance for the test inputs.
 
 ## Examples
 
@@ -77,6 +76,6 @@ points(x_test, gpr_predict(Kxx, Kxstar, y_train), pch = 16)
 # Add credible intervals around predictions:
 gpr_fit <- gpr_predict(Kxx, Kxstar, y_train, Kxstarstar = Kxstarstar)
 segments(x0 = x_test,
-         y0 = gpr_fit$mean - 2 * sqrt(gpr_fit$var),
-         y1 = gpr_fit$mean + 2 * sqrt(gpr_fit$var), col = "#4DAF4A")
+         y0 = gpr_fit$mean - 2 * sqrt(diag(gpr_fit$var)),
+         y1 = gpr_fit$mean + 2 * sqrt(diag(gpr_fit$var)), col = "#4DAF4A")
 ```
