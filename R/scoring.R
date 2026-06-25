@@ -26,11 +26,13 @@
 #' x_train <- seq(-pi, pi, length.out = N1)
 #' x_test  <- runif(N2, -pi, pi)
 #' y_train <- x_train * plogis(x_train) * cos(x_train) + rnorm(N1, sd = 0.5)
-#' y_test <- x_test * plogis(x_test) * cos(x_test) + rnorm(N2, sd = 0.5)
+#' y_test <- x_test * plogis(x_test) * cos(x_test)
 #' D2 <- outer(c(x_train, x_test), c(x_train, x_test), "-")^2
 #' fit <- fit_gpr(D2, seq_len(N1), N1 + seq_len(N2), y_train, y_test,
 #'                runs = 20L, cores = 1)
-#' nlpd_gpr(fit, y_test)
+#' # noisy outcome
+#' nlpd_gpr(fit, y_test + rnorm(N2, sd = 0.5))
+#' # clean outcome
 #' nlpd_gpr(fit, y_test, add_noise = FALSE)
 nlpd_gpr <- function(fit, y_test, add_noise = TRUE, nugget = 1e-10) {
   Sigma <- fit$test_variance
