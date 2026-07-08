@@ -70,8 +70,7 @@ rbf_multiple <- function(D_list, length_scales, variances, squared = TRUE) {
 #' distance matrix.
 #'
 #' @param D Matrix with pairwise (possibly squared) distances.
-#' @param length_scale Length-scale parameter. This length-scale is twice
-#'    the rho parameter usually seen in the literature on Matérn kernels.
+#' @param length_scale Length-scale parameter.
 #' @param variance Kernel variance parameter.
 #' @param tau Smoothness parameter. needs to be 0.5, 1.5 (default) or 2.5.
 #' @param squared If `TRUE` (default), `D` is assumed to contain squared
@@ -95,12 +94,12 @@ matern <- function(D, length_scale = 1, variance = 1, tau = 1.5,
     return(variance * exp(-D / (2 * length_scale)))
   }
   if (tau == 1.5) {
-    return(variance * (1 + sqrt(3) * D / (2 * length_scale)) *
-             exp(-sqrt(3) * D / (2 * length_scale)))
+    return(variance * (1 + sqrt(3) * D / length_scale) *
+             exp(-sqrt(3) * D / length_scale))
   }
   variance *
-    (1 + sqrt(5) * D / (2 * length_scale) + 5 * D^2 / (12 * length_scale^2)) *
-    exp(-sqrt(5) * D / (2 * length_scale))
+    (1 + sqrt(5) * D / length_scale + 5 * D^2 / (3 * length_scale^2)) *
+    exp(-sqrt(5) * D / length_scale)
 }
 #' Sum of Matérn Kernels
 #'
