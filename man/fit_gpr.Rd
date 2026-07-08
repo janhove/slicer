@@ -12,6 +12,7 @@ fit_gpr(
   y_test = NULL,
   centre = TRUE,
   use_gradient = TRUE,
+  kernels = "rbf",
   runs = 10L,
   cores = 1L,
   verbose = TRUE
@@ -31,7 +32,10 @@ fit_gpr(
 \item{centre}{If \code{TRUE}, the training outcomes are centred around their mean before fitting the model. The mean is then added back to the predictions at the end.}
 
 \item{use_gradient}{If \code{TRUE}, closed-form expressions for the RBF's gradient are used.
-Else, the optimiser uses the finite-differences method.}
+Else, the optimiser uses the finite-differences method.
+Ignored when non-RBF kernels are used.}
+
+\item{kernels}{A vector with kernels (\verb{"rbf", "matern05", "matern15", "matern25"}).}
 
 \item{runs}{Number of independent attempts to find a minimum when optimising the hyperparameters.}
 

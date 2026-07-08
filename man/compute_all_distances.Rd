@@ -25,11 +25,14 @@ compute_all_distances(
 \item{keep_projections}{If \code{TRUE}, the distance matrix for each projection direction is output.
 If \code{FALSE}, the distance matrices for the different projection directions are averaged.}
 
-\item{test_idx}{Optionally, a vector of indices. If supplied, skip the distance computations between distribution pairs whose indices both occur in this vector.}
+\item{test_idx}{Optionally, a vector of indices. If supplied, skip the
+distance computations between distribution pairs whose indices both occur
+in this vector.}
 }
 \value{
-If \code{keep_projections = TRUE}, a list of squared-distance matrices, one for each projection direction;
-otherwise, a matrix with the averaged squared distances.
+If \code{keep_projections = TRUE}, a list of squared-distance matrices,
+one for each projection direction; otherwise, a matrix with the averaged
+squared distances.
 }
 \description{
 This function computes the squared 2-Wasserstein distances between the projections

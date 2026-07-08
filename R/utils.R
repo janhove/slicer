@@ -132,3 +132,21 @@ project_and_sort <- function(M, thetas) {
 matrix_trace <- function(M) {
   sum(diag(M))
 }
+#' Compute a Kernel Matrix
+#'
+#' @noRd
+#'
+#' @param D2 Matrix with squared distances.
+#' @param length_scale Length-scale.
+#' @param variance Scaling factor (kernel variance).
+#' @param kernel Kernel name (`"rbf", "matern05", "matern15", "matern25"`).
+#'
+#' @return Kernel matrix.
+my_kernel <- function(D2, length_scale, variance, kernel) {
+  switch(kernel,
+         rbf = rbf(D2, length_scale = length_scale, variance = variance),
+         matern05 = matern(D2, length_scale = length_scale, variance = variance, tau = 0.5),
+         matern15 = matern(D2, length_scale = length_scale, variance = variance, tau = 1.5),
+         matern25 = matern(D2, length_scale = length_scale, variance = variance, tau = 2.5)
+  )
+}

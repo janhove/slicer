@@ -15,9 +15,10 @@ nw_corner_distance(
 \arguments{
 \item{x, y}{Vectors representing one-dimensional empirical distributions.}
 
-\item{presorted}{Set to \code{TRUE} if both \code{x} and \code{y} are sorted to obtain a speed-up.}
+\item{presorted}{Set to \code{TRUE} if both \code{x} and \code{y} are sorted to obtain a
+speed-up.}
 
-\item{p}{Order of the Wasserstein distance.}
+\item{p}{Order of the Wasserstein distance. Defaults to \code{p = 2}.}
 
 \item{eps}{Numerical precision for floating point comparisons.}
 }

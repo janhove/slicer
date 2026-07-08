@@ -2,20 +2,21 @@
 % Please edit documentation in R/generate_directions.R
 \name{generate_directions}
 \alias{generate_directions}
-\title{Generate random projection directions}
+\title{Generate Random Projection Directions}
 \usage{
 generate_directions(L, d)
 }
 \arguments{
 \item{L}{Number of projection directions.}
 
-\item{d}{Dimension.}
+\item{d}{Dimensionality of the ambient space.}
 }
 \value{
 An \code{L} by \code{d} matrix, each row of which contains a unit vector.
 }
 \description{
-Obtain \code{L} random vectors on the unit sphere in \code{d}-dimensional Euclidean space.
+Obtain \code{L} random vectors on the unit sphere in \code{d}-dimensional
+Euclidean space.
 }
 \examples{
 generate_directions(10, 4)

@@ -2,7 +2,7 @@
 % Please edit documentation in R/scoring.R
 \name{nlpd_gpr}
 \alias{nlpd_gpr}
-\title{Negative log predictive density for Gaussian process regression models}
+\title{Negative Log Predictive Density for Gaussian Process Regression Models}
 \usage{
 nlpd_gpr(fit, y_test, add_noise = TRUE, nugget = 1e-10)
 }
@@ -26,8 +26,9 @@ A scalar giving the average NLPD. The returned value has an attribute
 \description{
 Computes the average negative log predictive density (NLPD) of test outcomes
 under the posterior Gaussian distribution returned by a GPR model. If the
-posterior covariance is not positive definite, a small diagonal "nugget" is
-added adaptively for numerical stability.
+posterior covariance is not positive definite, a small jitter term is added
+to the main diagonal for numerical stability; this jitter term is increased
+adaptively as necessary.
 }
 \examples{
 set.seed(2026-06-25)

@@ -11,9 +11,11 @@ sliced_wasserstein(x, y, p = 2, thetas = NULL, L = 50, seed = NULL)
 
 \item{p}{Order of sliced Wasserstein distance.}
 
-\item{thetas}{Optionally, a matrix, each row of which represents a projection direction.}
+\item{thetas}{Optionally, a matrix, each row of which represents
+a projection direction.}
 
-\item{L}{If no \code{thetas} are provided, \code{L} random projection directions are generated.}
+\item{L}{If no \code{thetas} are provided, \code{L} random projection directions are
+generated.}
 
 \item{seed}{Optional random seed.}
 }

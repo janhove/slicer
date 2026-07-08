@@ -151,3 +151,46 @@ matern_multiple <- function(D_list, length_scales, variances, taus,
   }
   outcome
 }
+#' Sum of Kernels
+#'
+#' Builds kernel matrices from a list of distances matrices and computes
+#' their sum.
+#'
+#' @param D2_list A list of matrices with squared pairwise distances.
+#' @param length_scales A vector of length-scale parameters.
+#' @param variances A vector of kernel variance parameters.
+#' @param kernels A vector of kernels (`rbf`, `matern05`, `matern15`, `matern25`).
+#'
+#' @return A kernel matrix with the same dimensions as the matrices in `D_list`.
+#' @export
+#'
+#' @examples
+#' M1 <- rbind(c(0, 2, 1),
+#'             c(2, 0, 2.5),
+#'             c(1, 2.5, 0))
+#' M2 <- rbind(c(0, 1, 4),
+#'             c(1, 0, 3),
+#'             c(4, 3, 0))
+#' M_list <- list(M1^2, M2^2)
+#' kernel_sum(M_list, length_scales = c(1, 2), variances = c(2, 1/2),
+#'   kernels = c("rbf", "matern15"))
+#'
+kernel_sum <- function(D2_list, length_scales, variances, kernels) {
+  L <- length(D2_list)
+  if (length(length_scales) != L) {
+    stop("length_scales, D_list don't have same length.")
+  }
+  if (length(variances) != L) stop("variances, D_list don't have same length.")
+  N <- ncol(D2_list[[1]])
+  outcome <- matrix(0, nrow = N, ncol = N)
+  for (ell in 1:L) {
+    if (ncol(D2_list[[ell]]) != N) {
+      stop(paste0("Distance matrix ", ell,
+                  " doesn't have the same number of columns as distance matrix 1."))
+    }
+    outcome <- outcome +
+      my_kernel(D2_list[[ell]], length_scale = length_scales[[ell]],
+             variance = variances[[ell]], kernel = kernels[[ell]])
+  }
+  outcome
+}
