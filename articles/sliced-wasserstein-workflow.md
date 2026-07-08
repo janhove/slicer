@@ -299,11 +299,11 @@ total_fit <- fit_gpr(list(sw_distances, marginal_distances[[1]], marginal_distan
   y_train = angles[seq_len(N_train)], runs = 50L, cores = 2L)
 str(total_fit)
 #> List of 7
-#>  $ test_predictions: num [1:20] 0.247 0.69 0.247 0.549 0.085 ...
-#>  $ test_variance   : num [1:20, 1:20] 0.00081 NA NA NA NA ...
+#>  $ test_predictions: num [1:20] 0.268 0.682 0.25 0.581 0.11 ...
+#>  $ test_variance   : num [1:20, 1:20] 0.000729 NA NA NA NA ...
 #>  $ RMSE            : logi NA
-#>  $ length_scale    : num [1:3] 0.421 3.836 5.49
-#>  $ scaling_factor  : num [1:3] 0.00118 0.24758 0.12478
-#>  $ noise_variance  : num 5.2e-08
-#>  $ nll             : num -63.1
+#>  $ length_scale    : num [1:3] 2.83e-01 4.65 3.15e+08
+#>  $ scaling_factor  : num [1:3] 6.77e-04 7.52e-01 8.26e-10
+#>  $ noise_variance  : num 9.6e-08
+#>  $ nll             : num -61.8
 ```
