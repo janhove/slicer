@@ -1,9 +1,10 @@
-#' Negative log predictive density for Gaussian process regression models
+#' Negative Log Predictive Density for Gaussian Process Regression Models
 #'
 #' Computes the average negative log predictive density (NLPD) of test outcomes
 #' under the posterior Gaussian distribution returned by a GPR model. If the
-#' posterior covariance is not positive definite, a small diagonal "nugget" is
-#' added adaptively for numerical stability.
+#' posterior covariance is not positive definite, a small jitter term is added
+#' to the main diagonal for numerical stability; this jitter term is increased
+#' adaptively as necessary.
 #'
 #' @param fit A Gaussian process model fit obtained by [gpr_predict()] or
 #'    [fit_gpr()].
@@ -43,7 +44,6 @@ nlpd_gpr <- function(fit, y_test, add_noise = TRUE, nugget = 1e-10) {
     diag(Sigma) <- diag(Sigma) + fit$noise_variance
   }
 
-
   I <- diag(nrow(Sigma))
   Sigma_base <- Sigma
 
@@ -82,4 +82,3 @@ nlpd_gpr <- function(fit, y_test, add_noise = TRUE, nugget = 1e-10) {
   attr(nlpd, "jitter_used") <- attr(pd_check, "jitter_used")
   nlpd
 }
-
