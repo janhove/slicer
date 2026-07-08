@@ -4,8 +4,9 @@
 #' between two one-dimensional empirical distributions.
 #'
 #' @param x,y Vectors representing one-dimensional empirical distributions.
-#' @param presorted Set to `TRUE` if both `x` and `y` are sorted to obtain a speed-up.
-#' @param p Order of the Wasserstein distance.
+#' @param presorted Set to `TRUE` if both `x` and `y` are sorted to obtain a
+#'    speed-up.
+#' @param p Order of the Wasserstein distance. Defaults to `p = 2`.
 #' @param eps Numerical precision for floating point comparisons.
 #'
 #' @return The p-Wasserstein distance between `x` and `y`.
