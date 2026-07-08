@@ -11,8 +11,10 @@
 #'
 #' @param x,y Matrices representing empirical distributions.
 #' @param p Order of sliced Wasserstein distance.
-#' @param thetas Optionally, a matrix, each row of which represents a projection direction.
-#' @param L If no `thetas` are provided, `L` random projection directions are generated.
+#' @param thetas Optionally, a matrix, each row of which represents
+#'    a projection direction.
+#' @param L If no `thetas` are provided, `L` random projection directions are
+#'    generated.
 #' @param seed Optional random seed.
 #'
 #' @return Estimated sliced Wasserstein distance of order `p` between `x` and `y`.
@@ -66,11 +68,14 @@ sliced_wasserstein <- function(x, y, p = 2, thetas = NULL, L = 50, seed = NULL) 
 #' @param A Optionally, a matrix used to transform each projection direction.
 #' @param verbose If `TRUE`, show progress.
 #' @param keep_projections If `TRUE`, the distance matrix for each projection direction is output.
-#'                         If `FALSE`, the distance matrices for the different projection directions are averaged.
-#' @param test_idx Optionally, a vector of indices. If supplied, skip the distance computations between distribution pairs whose indices both occur in this vector.
+#'    If `FALSE`, the distance matrices for the different projection directions are averaged.
+#' @param test_idx Optionally, a vector of indices. If supplied, skip the
+#'    distance computations between distribution pairs whose indices both occur
+#'    in this vector.
 #'
-#' @return If `keep_projections = TRUE`, a list of squared-distance matrices, one for each projection direction;
-#'         otherwise, a matrix with the averaged squared distances.
+#' @return If `keep_projections = TRUE`, a list of squared-distance matrices,
+#'  one for each projection direction; otherwise, a matrix with the averaged
+#'  squared distances.
 #' @export
 #'
 #' @examples
@@ -122,7 +127,8 @@ compute_all_distances <- function(
           distance_matrix[j, i] <- NA
           next
         }
-        current_distance <- nw_corner_distance(projections[[i]][, ell], projections[[j]][, ell], presorted = TRUE)^2
+        current_distance <- nw_corner_distance(projections[[i]][, ell],
+          projections[[j]][, ell], presorted = TRUE)^2
         distance_matrix[i, j] <- current_distance
         distance_matrix[j, i] <- current_distance
       }
