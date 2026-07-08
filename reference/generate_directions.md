@@ -1,4 +1,4 @@
-# Generate random projection directions
+# Generate Random Projection Directions
 
 Obtain `L` random vectors on the unit sphere in `d`-dimensional
 Euclidean space.
@@ -17,7 +17,7 @@ generate_directions(L, d)
 
 - d:
 
-  Dimension.
+  Dimensionality of the ambient space.
 
 ## Value
 

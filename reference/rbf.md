@@ -1,4 +1,4 @@
-# Gaussian radial basis function kernel
+# Gaussian Radial Basis Function Kernel
 
 Builds a Gaussian radial basis function kernel matrix from a distance
 matrix.
@@ -13,15 +13,15 @@ rbf(D, length_scale = 1, variance = 1, squared = TRUE)
 
 - D:
 
-  A matrix with pairwise (possibly squared) distances.
+  Matrix with pairwise (possibly squared) distances.
 
 - length_scale:
 
-  The length-scale parameter.
+  Length-scale parameter.
 
 - variance:
 
-  The kernel variance parameter.
+  Kernel variance parameter.
 
 - squared:
 

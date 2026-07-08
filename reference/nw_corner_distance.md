@@ -27,7 +27,7 @@ nw_corner_distance(
 
 - p:
 
-  Order of the Wasserstein distance.
+  Order of the Wasserstein distance. Defaults to `p = 2`.
 
 - eps:
 

@@ -177,7 +177,8 @@ provided), and the estimated hyperparameters.
 ``` r
 
 str(sw_fit)
-#> List of 7
+#> List of 8
+#>  $ kernels         : chr "rbf"
 #>  $ test_predictions: num [1:20] 0.241 0.7091 0.2402 0.5074 0.0604 ...
 #>  $ test_variance   : num [1:20, 1:20] 0.00134 NA NA NA NA ...
 #>  $ RMSE            : logi NA
@@ -225,7 +226,8 @@ marginal_fit <- fit_gpr(marginal_distances,
 #> Hyperparameter search 9 of 10.
 #> Hyperparameter search 10 of 10.
 str(marginal_fit)
-#> List of 7
+#> List of 8
+#>  $ kernels         : chr [1:2] "rbf" "rbf"
 #>  $ test_predictions: num [1:20] 0.2395 0.6678 0.2429 0.5619 0.0919 ...
 #>  $ test_variance   : num [1:20, 1:20] 0.000587 NA NA NA NA ...
 #>  $ RMSE            : logi NA
@@ -269,7 +271,8 @@ total_fit <- fit_gpr(list(sw_distances, marginal_distances[[1]], marginal_distan
 #> Hyperparameter search 9 of 10.
 #> Hyperparameter search 10 of 10.
 str(total_fit)
-#> List of 7
+#> List of 8
+#>  $ kernels         : chr [1:3] "rbf" "rbf" "rbf"
 #>  $ test_predictions: num [1:20] 0.247 0.69 0.247 0.549 0.085 ...
 #>  $ test_variance   : num [1:20, 1:20] 0.00081 NA NA NA NA ...
 #>  $ RMSE            : logi NA
@@ -298,12 +301,13 @@ total_fit <- fit_gpr(list(sw_distances, marginal_distances[[1]], marginal_distan
   test_idx = N_train + seq_len(N_test),
   y_train = angles[seq_len(N_train)], runs = 50L, cores = 2L)
 str(total_fit)
-#> List of 7
-#>  $ test_predictions: num [1:20] 0.268 0.682 0.25 0.581 0.11 ...
-#>  $ test_variance   : num [1:20, 1:20] 0.000729 NA NA NA NA ...
+#> List of 8
+#>  $ kernels         : chr [1:3] "rbf" "rbf" "rbf"
+#>  $ test_predictions: num [1:20] 0.247 0.69 0.247 0.549 0.085 ...
+#>  $ test_variance   : num [1:20, 1:20] 0.00081 NA NA NA NA ...
 #>  $ RMSE            : logi NA
-#>  $ length_scale    : num [1:3] 2.83e-01 4.65 3.15e+08
-#>  $ scaling_factor  : num [1:3] 6.77e-04 7.52e-01 8.26e-10
-#>  $ noise_variance  : num 9.6e-08
-#>  $ nll             : num -61.8
+#>  $ length_scale    : num [1:3] 0.421 3.834 5.484
+#>  $ scaling_factor  : num [1:3] 0.00117 0.24723 0.12466
+#>  $ noise_variance  : num 2.89e-08
+#>  $ nll             : num -63.1
 ```

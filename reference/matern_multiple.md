@@ -1,12 +1,12 @@
-# Sum of Gaussian Radial Basis Function Kernels
+# Sum of Matérn Kernels
 
-Builds Gaussian radial basis function kernel matrices from a list of
-distances matrices and computes their sum.
+Builds Matérn kernel matrices from a list of distances matrices and
+computes their sum.
 
 ## Usage
 
 ``` r
-rbf_multiple(D_list, length_scales, variances, squared = TRUE)
+matern_multiple(D_list, length_scales, variances, taus, squared = TRUE)
 ```
 
 ## Arguments
@@ -22,6 +22,12 @@ rbf_multiple(D_list, length_scales, variances, squared = TRUE)
 - variances:
 
   A vector of kernel variance parameters.
+
+- taus:
+
+  A vector of smoothness parameters. Values need to be in 0.5, 1.5 and
+  2.5. If only a single value is provided, it will be used for all
+  components.
 
 - squared:
 
@@ -43,9 +49,10 @@ M2 <- rbind(c(0, 1, 4),
             c(1, 0, 3),
             c(4, 3, 0))
 M_list <- list(M1, M2)
-rbf_multiple(M_list, length_scales = c(1, 2), variances = c(2, 1/2), squared = FALSE)
+matern_multiple(M_list, length_scales = c(1, 2), variances = c(2, 1/2),
+  taus = c(0.5, 2.5), squared = FALSE)
 #>          [,1]      [,2]      [,3]
-#> [1,] 2.500000 0.7119190 1.2807290
-#> [2,] 0.711919 2.5000000 0.2502001
-#> [3,] 1.280729 0.2502001 2.5000000
+#> [1,] 2.500000 1.1500835 1.2823914
+#> [2,] 1.150083 2.5000000 0.7145912
+#> [3,] 1.282391 0.7145912 2.5000000
 ```

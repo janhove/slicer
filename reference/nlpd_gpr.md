@@ -1,9 +1,10 @@
-# Negative log predictive density for Gaussian process regression models
+# Negative Log Predictive Density for Gaussian Process Regression Models
 
 Computes the average negative log predictive density (NLPD) of test
 outcomes under the posterior Gaussian distribution returned by a GPR
 model. If the posterior covariance is not positive definite, a small
-diagonal "nugget" is added adaptively for numerical stability.
+jitter term is added to the main diagonal for numerical stability; this
+jitter term is increased adaptively as necessary.
 
 ## Usage
 
