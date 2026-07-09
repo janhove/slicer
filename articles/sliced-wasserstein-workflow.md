@@ -62,16 +62,6 @@ generate_data(angle = 3*pi/8) |>
 par(op)
 ```
 
-Finally, a function for computing the root mean squared error of the
-predictions:
-
-``` r
-
-rmse <- function(predictions, true_values) {
-  sqrt(mean((predictions - true_values)^2))
-}
-```
-
 ## Data generation
 
 We generate 60 matrices (40 for training, 20 for testing) containing
@@ -100,9 +90,10 @@ We can use
 to compute pairwise distances between the input distributions. If we
 supply the optional vector `test_idx` with the test set indices, the
 pairwise distance computations between test objects (which are not
-needed) are skipped. To compute **sliced Wasserstein distances**, we
-need to first generate $`\theta_1, \dots, \theta_L`$ sampled uniformly
-at random from the unit sphere;
+needed for obtaining predictions) are skipped. To compute **sliced
+Wasserstein distances**, we need to first generate
+$`\boldsymbol{\theta_1}, \dots, \boldsymbol{\theta_L}`$ sampled
+uniformly at random from the unit sphere;
 [`generate_directions()`](https://janhove.github.io/slicer/reference/generate_directions.md)
 takes care of this. We’ll use $`L = 25`$ and set $`d = 2`$ since we’re
 working in two dimensions. If we’re only interested in the estimated
@@ -118,13 +109,19 @@ sw_distances <- compute_all_distances(distributions, thetas, verbose = FALSE,
 The $`60 \times 60`$ matrix `sw_distances` contains the *squared*
 (estimated) sliced Wasserstein distances among the forty training
 objects and between the training objects and the twenty test objects.
-The pairwise distances among the test objects are set to `NA`.
+The pairwise distances among the test objects are set to `NA`:
+
+``` r
+
+sw_distances # output not shown
+```
 
 We can also compute (normal) **Wasserstein distances** between the
 distributions when they are projected along certain dimensions. For
 instances, to compute the pairwise Wasserstein distances along the first
 margin and along the second margin, we set the projection directions to
-$`e_1 = (1, 0)^{\top}`$ and $`e_2 = (0, 1)^{\top}`$. We also set
+$`\boldsymbol{e_1} = (1, 0)^{\top}`$ and
+$`\boldsymbol{e_2} = (0, 1)^{\top}`$. We also set
 `keep_projections = TRUE`, which will cause the function to output a
 list of two matrices with *squared* Wasserstein distances: one for each
 margin.
@@ -145,7 +142,14 @@ str(marginal_distances)
 The function
 [`fit_gpr()`](https://janhove.github.io/slicer/reference/fit_gpr.md)
 takes a single matrix with squared pairwise distances and uses it as
-input to a Gaussian process regression model with a Gaussian RBF kernel.
+input to a Gaussian process regression model with (by default) a
+Gaussian RBF kernel:
+``` math
+k_{\textrm{RBF}}(x, x') = s^2\exp\left(-\frac{d^2(x, x')}{2t^2}\right)
+```
+, where $`s^2 > 0`$ is a scaling factor, $`t > 0`$ is the length-scale,
+and $`d(x, x')`$ is the distance between the inputs $`x`$ and $`x'`$.
+
 The model’s and the kernel’s hyperparameters are tuned using the
 training data by minimising the negative marginal log-likelihood.
 
@@ -155,6 +159,7 @@ sw_fit <- fit_gpr(sw_distances,
   training_idx = seq_len(N_train),
   test_idx = N_train + seq_len(N_test),
   y_train = angles[seq_len(N_train)], 
+  y_test = angles[N_train + seq_len(N_test)],
   verbose = TRUE)
 #> Hyperparameter search 1 of 10.
 #> Optimum set at -58.8175077.
@@ -170,9 +175,9 @@ sw_fit <- fit_gpr(sw_distances,
 #> Hyperparameter search 10 of 10.
 ```
 
-The output consists of predictions for the test data, the root mean
-squared error of these predictions (if the true test outcomes were
-provided), and the estimated hyperparameters.
+The output includes predictions for the test data, the covariannce for
+the predictions (if the true test outcomes were provided), and the
+estimated hyperparameters.
 
 ``` r
 
@@ -181,7 +186,7 @@ str(sw_fit)
 #>  $ kernels         : chr "rbf"
 #>  $ test_predictions: num [1:20] 0.241 0.7091 0.2402 0.5074 0.0604 ...
 #>  $ test_variance   : num [1:20, 1:20] 0.00134 NA NA NA NA ...
-#>  $ RMSE            : logi NA
+#>  $ RMSE            : num 0.038
 #>  $ length_scale    : num 1.57
 #>  $ scaling_factor  : num 0.0758
 #>  $ noise_variance  : num 1.57e-07
@@ -192,11 +197,21 @@ plot(angles[N_train + seq_len(N_test)], sw_fit$test_predictions,
 
 ![](sliced-wasserstein-workflow_files/figure-html/unnamed-chunk-9-1.png)
 
+Since we didn’t compute the distances between the test inputs, only the
+predictions variances are reported (the main diagonal of
+`test_variance`):
+
 ``` r
 
-rmse(sw_fit$test_predictions, angles[N_train + seq_len(N_test)])
-#> [1] 0.03804247
+diag(sw_fit$test_variance)
+#>  [1] 0.0013366282 0.0021746730 0.0009410588 0.0024842495 0.0009932353
+#>  [6] 0.0012133334 0.0026980876 0.0017291003 0.0009257171 0.0010941720
+#> [11] 0.0014113678 0.0014527097 0.0008645677 0.0009060975 0.0030615151
+#> [16] 0.0008919646 0.0017044887 0.0039857607 0.0025413811 0.0023768280
 ```
+
+Had we also computed the distances between the test inputs,
+`test_variance` would have also included the covariances.
 
 The function
 [`fit_gpr()`](https://janhove.github.io/slicer/reference/fit_gpr.md) can
@@ -211,6 +226,7 @@ marginal_fit <- fit_gpr(marginal_distances,
   training_idx = seq_len(N_train),
   test_idx = N_train + seq_len(N_test),
   y_train = angles[seq_len(N_train)], 
+  y_test = angles[N_train + seq_len(N_test)],
   verbose = TRUE)
 #> Hyperparameter search 1 of 10.
 #> Optimum set at -48.3151392.
@@ -230,7 +246,7 @@ str(marginal_fit)
 #>  $ kernels         : chr [1:2] "rbf" "rbf"
 #>  $ test_predictions: num [1:20] 0.2395 0.6678 0.2429 0.5619 0.0919 ...
 #>  $ test_variance   : num [1:20, 1:20] 0.000587 NA NA NA NA ...
-#>  $ RMSE            : logi NA
+#>  $ RMSE            : num 0.0522
 #>  $ length_scale    : num [1:2] 3.9 6.09
 #>  $ scaling_factor  : num [1:2] 0.347 0.146
 #>  $ noise_variance  : num 0.000448
@@ -239,13 +255,7 @@ plot(angles[N_train + seq_len(N_test)], marginal_fit$test_predictions,
      xlab = "true test outcomes", ylab = "predicted test outcomes", asp = 1)
 ```
 
-![](sliced-wasserstein-workflow_files/figure-html/unnamed-chunk-10-1.png)
-
-``` r
-
-rmse(marginal_fit$test_predictions, angles[N_train + seq_len(N_test)])
-#> [1] 0.05219439
-```
+![](sliced-wasserstein-workflow_files/figure-html/unnamed-chunk-11-1.png)
 
 We can combine the marginal and sliced Wasserstein distances into a list
 with three distance matrices, too:
@@ -256,6 +266,7 @@ total_fit <- fit_gpr(list(sw_distances, marginal_distances[[1]], marginal_distan
   training_idx = seq_len(N_train),
   test_idx = N_train + seq_len(N_test),
   y_train = angles[seq_len(N_train)], 
+  y_test = angles[N_train + seq_len(N_test)],
   verbose = TRUE)
 #> Hyperparameter search 1 of 10.
 #> Optimum set at -58.8320454.
@@ -275,7 +286,7 @@ str(total_fit)
 #>  $ kernels         : chr [1:3] "rbf" "rbf" "rbf"
 #>  $ test_predictions: num [1:20] 0.247 0.69 0.247 0.549 0.085 ...
 #>  $ test_variance   : num [1:20, 1:20] 0.00081 NA NA NA NA ...
-#>  $ RMSE            : logi NA
+#>  $ RMSE            : num 0.047
 #>  $ length_scale    : num [1:3] 0.421 3.833 5.482
 #>  $ scaling_factor  : num [1:3] 0.00118 0.24703 0.12446
 #>  $ noise_variance  : num 3.32e-08
@@ -284,13 +295,7 @@ plot(angles[N_train + seq_len(N_test)], total_fit$test_predictions,
      xlab = "true test outcomes", ylab = "predicted test outcomes", asp = 1)
 ```
 
-![](sliced-wasserstein-workflow_files/figure-html/unnamed-chunk-11-1.png)
-
-``` r
-
-rmse(total_fit$test_predictions, angles[N_train + seq_len(N_test)])
-#> [1] 0.04697571
-```
+![](sliced-wasserstein-workflow_files/figure-html/unnamed-chunk-12-1.png)
 
 Parallel processing can be enabled using the `cores` parameter:
 
@@ -299,15 +304,68 @@ Parallel processing can be enabled using the `cores` parameter:
 total_fit <- fit_gpr(list(sw_distances, marginal_distances[[1]], marginal_distances[[2]]),
   training_idx = seq_len(N_train),
   test_idx = N_train + seq_len(N_test),
-  y_train = angles[seq_len(N_train)], runs = 50L, cores = 2L)
+  y_train = angles[seq_len(N_train)], 
+  y_test = angles[N_train + seq_len(N_test)],
+  runs = 50L, cores = 2L)
 str(total_fit)
 #> List of 8
 #>  $ kernels         : chr [1:3] "rbf" "rbf" "rbf"
 #>  $ test_predictions: num [1:20] 0.247 0.69 0.247 0.549 0.085 ...
 #>  $ test_variance   : num [1:20, 1:20] 0.00081 NA NA NA NA ...
-#>  $ RMSE            : logi NA
-#>  $ length_scale    : num [1:3] 0.421 3.834 5.484
-#>  $ scaling_factor  : num [1:3] 0.00117 0.24723 0.12466
-#>  $ noise_variance  : num 2.89e-08
+#>  $ RMSE            : num 0.047
+#>  $ length_scale    : num [1:3] 0.421 3.836 5.492
+#>  $ scaling_factor  : num [1:3] 0.00117 0.24754 0.12501
+#>  $ noise_variance  : num 1.8e-07
 #>  $ nll             : num -63.1
 ```
+
+Instead of the Gaussian RBF kernel, the Matérn kernels with smoothness
+parameter $`\nu = 0.5, 1.5, 2.5`$ can be used. We can use a different
+kernel for each distance matrix; the total kernel used is then the
+conical combination of these kernels. For instance, the following fit
+uses the Matérn kernel with $`\nu = 2.5`$ for the sliced Wasserstein
+distances, the Matérn kernel with $`\nu = 0.5`$ for the Wasserstein
+distances along the first axis, and the Matérn kernel with $`\nu = 1.5`$
+for the Wasserstein distances alogn the second axis.
+
+``` r
+
+total_fit_matern <- fit_gpr(list(sw_distances, marginal_distances[[1]], marginal_distances[[2]]),
+  training_idx = seq_len(N_train),
+  test_idx = N_train + seq_len(N_test),
+  y_train = angles[seq_len(N_train)], 
+  y_test = angles[N_train + seq_len(N_test)],
+  kernels = c("matern25", "matern05", "matern15"),
+  runs = 50L, cores = 2L)
+str(total_fit_matern)
+#> List of 8
+#>  $ kernels         : chr [1:3] "matern25" "matern05" "matern15"
+#>  $ test_predictions: num [1:20] 0.254 0.664 0.2329 0.5286 0.0812 ...
+#>  $ test_variance   : num [1:20, 1:20] 0.0105 NA NA NA NA ...
+#>  $ RMSE            : num 0.0555
+#>  $ length_scale    : num [1:3] 0.421 3.829 5.476
+#>  $ scaling_factor  : num [1:3] 0.00117 0.24629 0.1243
+#>  $ noise_variance  : num 2.07e-07
+#>  $ nll             : num -63.1
+```
+
+Finally, a GPR’s **negative log predictive density** (NLPD) for some
+test data can be obtained like so:
+
+``` r
+
+nlpd_gpr(total_fit_matern, angles[N_train + seq_len(N_test)])
+#> Warning in nlpd_gpr(total_fit_matern, angles[N_train + seq_len(N_test)]): The fit's test variance contains NAs, likely because the distances among the test inputs weren't provided.
+#> Replacing NAs by 0.
+#> [1] -1.137902
+#> attr(,"jitter_used")
+#> [1] 0
+```
+
+The warning message occurs because we didn’t compute the distances among
+the test inputs themselves. As a result, the kernel matrices don’t
+specify the covariance among the test inputs, and the NLPD assumes that
+they are zero. If you remove the `test_idx` parameter setting when
+running
+[`compute_all_distances()`](https://janhove.github.io/slicer/reference/compute_all_distances.md)
+and refit the models, this warning will disappear.

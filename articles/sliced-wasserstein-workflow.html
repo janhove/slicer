@@ -117,12 +117,6 @@ and once using one of
 <p><img src="sliced-wasserstein-workflow_files/figure-html/unnamed-chunk-3-1.png" class="r-plt" alt="" width="864"></p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span><span class="va">op</span><span class="op">)</span></span></code></pre></div>
-<p>Finally, a function for computing the root mean squared error of the
-predictions:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">rmse</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">predictions</span>, <span class="va">true_values</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="op">(</span><span class="va">predictions</span> <span class="op">-</span> <span class="va">true_values</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="op">}</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="data-generation">Data generation<a class="anchor" aria-label="anchor" href="#data-generation"></a>
@@ -131,7 +125,7 @@ predictions:</p>
 empirical distributions with the rotation angles sampled uniformly from
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">[</mo><mn>0</mn><mo>,</mo><mi>π</mi><mi>/</mi><mn>4</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">[0, \pi/4)</annotation></semantics></math>.
 Each empirical distribution is based on 200 data points.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sample_size</span> <span class="op">&lt;-</span> <span class="fl">200</span></span>
 <span><span class="va">N_train</span> <span class="op">&lt;-</span> <span class="fl">40</span></span>
 <span><span class="va">N_test</span>  <span class="op">&lt;-</span> <span class="fl">20</span></span>
@@ -150,10 +144,10 @@ Each empirical distribution is based on 200 data points.</p>
 <p>We can use <code><a href="../reference/compute_all_distances.html">compute_all_distances()</a></code> to compute pairwise
 distances between the input distributions. If we supply the optional
 vector <code>test_idx</code> with the test set indices, the pairwise
-distance computations between test objects (which are not needed) are
-skipped. To compute <strong>sliced Wasserstein distances</strong>, we
-need to first generate
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>θ</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>θ</mi><mi>L</mi></msub></mrow><annotation encoding="application/x-tex">\theta_1, \dots, \theta_L</annotation></semantics></math>
+distance computations between test objects (which are not needed for
+obtaining predictions) are skipped. To compute <strong>sliced
+Wasserstein distances</strong>, we need to first generate
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>𝛉</mi><mn>𝟏</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>𝛉</mi><mi>𝐋</mi></msub></mrow><annotation encoding="application/x-tex">\boldsymbol{\theta_1}, \dots, \boldsymbol{\theta_L}</annotation></semantics></math>
 sampled uniformly at random from the unit sphere;
 <code><a href="../reference/generate_directions.html">generate_directions()</a></code> takes care of this. We’ll use
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi><mo>=</mo><mn>25</mn></mrow><annotation encoding="application/x-tex">L = 25</annotation></semantics></math>
@@ -162,7 +156,7 @@ and set
 since we’re working in two dimensions. If we’re only interested in the
 estimated sliced Wasserstein distances, we can set
 <code>keep_projections</code> to <code>FALSE</code>.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">thetas</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generate_directions.html">generate_directions</a></span><span class="op">(</span>L <span class="op">=</span> <span class="fl">25</span>, d <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
 <span><span class="va">sw_distances</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/compute_all_distances.html">compute_all_distances</a></span><span class="op">(</span><span class="va">distributions</span>, <span class="va">thetas</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>    keep_projections <span class="op">=</span> <span class="cn">FALSE</span>, test_idx <span class="op">=</span> <span class="va">N_train</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_test</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
@@ -172,15 +166,17 @@ matrix <code>sw_distances</code> contains the <em>squared</em>
 (estimated) sliced Wasserstein distances among the forty training
 objects and between the training objects and the twenty test objects.
 The pairwise distances among the test objects are set to
-<code>NA</code>.</p>
+<code>NA</code>:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sw_distances</span> <span class="co"># output not shown</span></span></code></pre></div>
 <p>We can also compute (normal) <strong>Wasserstein distances</strong>
 between the distributions when they are projected along certain
 dimensions. For instances, to compute the pairwise Wasserstein distances
 along the first margin and along the second margin, we set the
 projection directions to
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mn>1</mn></msub><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>,</mo><mn>0</mn><msup><mo stretchy="false" form="postfix">)</mo><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">e_1 = (1, 0)^{\top}</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>𝐞</mi><mn>𝟏</mn></msub><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>,</mo><mn>0</mn><msup><mo stretchy="false" form="postfix">)</mo><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">\boldsymbol{e_1} = (1, 0)^{\top}</annotation></semantics></math>
 and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mn>2</mn></msub><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo>,</mo><mn>1</mn><msup><mo stretchy="false" form="postfix">)</mo><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">e_2 = (0, 1)^{\top}</annotation></semantics></math>.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>𝐞</mi><mn>𝟐</mn></msub><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo>,</mo><mn>1</mn><msup><mo stretchy="false" form="postfix">)</mo><mi>⊤</mi></msup></mrow><annotation encoding="application/x-tex">\boldsymbol{e_2} = (0, 1)^{\top}</annotation></semantics></math>.
 We also set <code>keep_projections = TRUE</code>, which will cause the
 function to output a list of two matrices with <em>squared</em>
 Wasserstein distances: one for each margin.</p>
@@ -198,14 +194,26 @@ Wasserstein distances: one for each margin.</p>
 </h2>
 <p>The function <code><a href="../reference/fit_gpr.html">fit_gpr()</a></code> takes a single matrix with
 squared pairwise distances and uses it as input to a Gaussian process
-regression model with a Gaussian RBF kernel. The model’s and the
-kernel’s hyperparameters are tuned using the training data by minimising
-the negative marginal log-likelihood.</p>
+regression model with (by default) a Gaussian RBF kernel:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>k</mi><mtext mathvariant="normal">RBF</mtext></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><msup><mi>x</mi><mo>′</mo></msup><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msup><mi>s</mi><mn>2</mn></msup><mrow><mi mathvariant="normal">exp</mi><mo>⁡</mo></mrow><mrow><mo stretchy="true" form="prefix">(</mo><mi>−</mi><mfrac><mrow><msup><mi>d</mi><mn>2</mn></msup><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><msup><mi>x</mi><mo>′</mo></msup><mo stretchy="false" form="postfix">)</mo></mrow><mrow><mn>2</mn><msup><mi>t</mi><mn>2</mn></msup></mrow></mfrac><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">k_{\textrm{RBF}}(x, x') = s^2\exp\left(-\frac{d^2(x, x')}{2t^2}\right)</annotation></semantics></math>,
+where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>s</mi><mn>2</mn></msup><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">s^2 &gt; 0</annotation></semantics></math>
+is a scaling factor,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>t</mi><mo>&gt;</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">t &gt; 0</annotation></semantics></math>
+is the length-scale, and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo>,</mo><msup><mi>x</mi><mo>′</mo></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">d(x, x')</annotation></semantics></math>
+is the distance between the inputs
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>x</mi><mo>′</mo></msup><annotation encoding="application/x-tex">x'</annotation></semantics></math>.</p>
+<p>The model’s and the kernel’s hyperparameters are tuned using the
+training data by minimising the negative marginal log-likelihood.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sw_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fit_gpr.html">fit_gpr</a></span><span class="op">(</span><span class="va">sw_distances</span>,</span>
 <span>  training_idx <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_train</span><span class="op">)</span>,</span>
 <span>  test_idx <span class="op">=</span> <span class="va">N_train</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_test</span><span class="op">)</span>,</span>
 <span>  y_train <span class="op">=</span> <span class="va">angles</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_train</span><span class="op">)</span><span class="op">]</span>, </span>
+<span>  y_test <span class="op">=</span> <span class="va">angles</span><span class="op">[</span><span class="va">N_train</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_test</span><span class="op">)</span><span class="op">]</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Hyperparameter search 1 of 10.</span></span>
 <span><span class="co">#&gt; Optimum set at -58.8175077.</span></span>
@@ -219,16 +227,16 @@ the negative marginal log-likelihood.</p>
 <span><span class="co">#&gt; Current optimum improved from -58.8175077 to -58.8176617.</span></span>
 <span><span class="co">#&gt; Hyperparameter search 9 of 10.</span></span>
 <span><span class="co">#&gt; Hyperparameter search 10 of 10.</span></span></code></pre></div>
-<p>The output consists of predictions for the test data, the root mean
-squared error of these predictions (if the true test outcomes were
-provided), and the estimated hyperparameters.</p>
+<p>The output includes predictions for the test data, the covariannce
+for the predictions (if the true test outcomes were provided), and the
+estimated hyperparameters.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">sw_fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt; List of 8</span></span>
 <span><span class="co">#&gt;  $ kernels         : chr "rbf"</span></span>
 <span><span class="co">#&gt;  $ test_predictions: num [1:20] 0.241 0.7091 0.2402 0.5074 0.0604 ...</span></span>
 <span><span class="co">#&gt;  $ test_variance   : num [1:20, 1:20] 0.00134 NA NA NA NA ...</span></span>
-<span><span class="co">#&gt;  $ RMSE            : logi NA</span></span>
+<span><span class="co">#&gt;  $ RMSE            : num 0.038</span></span>
 <span><span class="co">#&gt;  $ length_scale    : num 1.57</span></span>
 <span><span class="co">#&gt;  $ scaling_factor  : num 0.0758</span></span>
 <span><span class="co">#&gt;  $ noise_variance  : num 1.57e-07</span></span>
@@ -236,9 +244,17 @@ provided), and the estimated hyperparameters.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">angles</span><span class="op">[</span><span class="va">N_train</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_test</span><span class="op">)</span><span class="op">]</span>, <span class="va">sw_fit</span><span class="op">$</span><span class="va">test_predictions</span>,</span>
 <span>     xlab <span class="op">=</span> <span class="st">"true test outcomes"</span>, ylab <span class="op">=</span> <span class="st">"predicted test outcomes"</span>, asp <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
 <p><img src="sliced-wasserstein-workflow_files/figure-html/unnamed-chunk-9-1.png" class="r-plt" alt="" width="700"></p>
+<p>Since we didn’t compute the distances between the test inputs, only
+the predictions variances are reported (the main diagonal of
+<code>test_variance</code>):</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">rmse</span><span class="op">(</span><span class="va">sw_fit</span><span class="op">$</span><span class="va">test_predictions</span>, <span class="va">angles</span><span class="op">[</span><span class="va">N_train</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_test</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.03804247</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="va">sw_fit</span><span class="op">$</span><span class="va">test_variance</span><span class="op">)</span></span>
+<span><span class="co">#&gt;  [1] 0.0013366282 0.0021746730 0.0009410588 0.0024842495 0.0009932353</span></span>
+<span><span class="co">#&gt;  [6] 0.0012133334 0.0026980876 0.0017291003 0.0009257171 0.0010941720</span></span>
+<span><span class="co">#&gt; [11] 0.0014113678 0.0014527097 0.0008645677 0.0009060975 0.0030615151</span></span>
+<span><span class="co">#&gt; [16] 0.0008919646 0.0017044887 0.0039857607 0.0025413811 0.0023768280</span></span></code></pre></div>
+<p>Had we also computed the distances between the test inputs,
+<code>test_variance</code> would have also included the covariances.</p>
 <p>The function <code><a href="../reference/fit_gpr.html">fit_gpr()</a></code> can also be used when multiple
 matrices with squared distances are provided. Now, estimated
 length-scale and (kernel) variance hyperparameters are provided for the
@@ -248,6 +264,7 @@ Gaussian RBF corresponding to each squared distance matrix.</p>
 <span>  training_idx <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_train</span><span class="op">)</span>,</span>
 <span>  test_idx <span class="op">=</span> <span class="va">N_train</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_test</span><span class="op">)</span>,</span>
 <span>  y_train <span class="op">=</span> <span class="va">angles</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_train</span><span class="op">)</span><span class="op">]</span>, </span>
+<span>  y_test <span class="op">=</span> <span class="va">angles</span><span class="op">[</span><span class="va">N_train</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_test</span><span class="op">)</span><span class="op">]</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Hyperparameter search 1 of 10.</span></span>
 <span><span class="co">#&gt; Optimum set at -48.3151392.</span></span>
@@ -267,24 +284,22 @@ Gaussian RBF corresponding to each squared distance matrix.</p>
 <span><span class="co">#&gt;  $ kernels         : chr [1:2] "rbf" "rbf"</span></span>
 <span><span class="co">#&gt;  $ test_predictions: num [1:20] 0.2395 0.6678 0.2429 0.5619 0.0919 ...</span></span>
 <span><span class="co">#&gt;  $ test_variance   : num [1:20, 1:20] 0.000587 NA NA NA NA ...</span></span>
-<span><span class="co">#&gt;  $ RMSE            : logi NA</span></span>
+<span><span class="co">#&gt;  $ RMSE            : num 0.0522</span></span>
 <span><span class="co">#&gt;  $ length_scale    : num [1:2] 3.9 6.09</span></span>
 <span><span class="co">#&gt;  $ scaling_factor  : num [1:2] 0.347 0.146</span></span>
 <span><span class="co">#&gt;  $ noise_variance  : num 0.000448</span></span>
 <span><span class="co">#&gt;  $ nll             : num -61.5</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">angles</span><span class="op">[</span><span class="va">N_train</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_test</span><span class="op">)</span><span class="op">]</span>, <span class="va">marginal_fit</span><span class="op">$</span><span class="va">test_predictions</span>,</span>
 <span>     xlab <span class="op">=</span> <span class="st">"true test outcomes"</span>, ylab <span class="op">=</span> <span class="st">"predicted test outcomes"</span>, asp <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
-<p><img src="sliced-wasserstein-workflow_files/figure-html/unnamed-chunk-10-1.png" class="r-plt" alt="" width="700"></p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">rmse</span><span class="op">(</span><span class="va">marginal_fit</span><span class="op">$</span><span class="va">test_predictions</span>, <span class="va">angles</span><span class="op">[</span><span class="va">N_train</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_test</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.05219439</span></span></code></pre></div>
+<p><img src="sliced-wasserstein-workflow_files/figure-html/unnamed-chunk-11-1.png" class="r-plt" alt="" width="700"></p>
 <p>We can combine the marginal and sliced Wasserstein distances into a
 list with three distance matrices, too:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">total_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fit_gpr.html">fit_gpr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">sw_distances</span>, <span class="va">marginal_distances</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>, <span class="va">marginal_distances</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>,</span>
 <span>  training_idx <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_train</span><span class="op">)</span>,</span>
 <span>  test_idx <span class="op">=</span> <span class="va">N_train</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_test</span><span class="op">)</span>,</span>
 <span>  y_train <span class="op">=</span> <span class="va">angles</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_train</span><span class="op">)</span><span class="op">]</span>, </span>
+<span>  y_test <span class="op">=</span> <span class="va">angles</span><span class="op">[</span><span class="va">N_train</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_test</span><span class="op">)</span><span class="op">]</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Hyperparameter search 1 of 10.</span></span>
 <span><span class="co">#&gt; Optimum set at -58.8320454.</span></span>
@@ -304,34 +319,79 @@ list with three distance matrices, too:</p>
 <span><span class="co">#&gt;  $ kernels         : chr [1:3] "rbf" "rbf" "rbf"</span></span>
 <span><span class="co">#&gt;  $ test_predictions: num [1:20] 0.247 0.69 0.247 0.549 0.085 ...</span></span>
 <span><span class="co">#&gt;  $ test_variance   : num [1:20, 1:20] 0.00081 NA NA NA NA ...</span></span>
-<span><span class="co">#&gt;  $ RMSE            : logi NA</span></span>
+<span><span class="co">#&gt;  $ RMSE            : num 0.047</span></span>
 <span><span class="co">#&gt;  $ length_scale    : num [1:3] 0.421 3.833 5.482</span></span>
 <span><span class="co">#&gt;  $ scaling_factor  : num [1:3] 0.00118 0.24703 0.12446</span></span>
 <span><span class="co">#&gt;  $ noise_variance  : num 3.32e-08</span></span>
 <span><span class="co">#&gt;  $ nll             : num -63.1</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">angles</span><span class="op">[</span><span class="va">N_train</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_test</span><span class="op">)</span><span class="op">]</span>, <span class="va">total_fit</span><span class="op">$</span><span class="va">test_predictions</span>,</span>
 <span>     xlab <span class="op">=</span> <span class="st">"true test outcomes"</span>, ylab <span class="op">=</span> <span class="st">"predicted test outcomes"</span>, asp <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
-<p><img src="sliced-wasserstein-workflow_files/figure-html/unnamed-chunk-11-1.png" class="r-plt" alt="" width="700"></p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">rmse</span><span class="op">(</span><span class="va">total_fit</span><span class="op">$</span><span class="va">test_predictions</span>, <span class="va">angles</span><span class="op">[</span><span class="va">N_train</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_test</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.04697571</span></span></code></pre></div>
+<p><img src="sliced-wasserstein-workflow_files/figure-html/unnamed-chunk-12-1.png" class="r-plt" alt="" width="700"></p>
 <p>Parallel processing can be enabled using the <code>cores</code>
 parameter:</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">total_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fit_gpr.html">fit_gpr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">sw_distances</span>, <span class="va">marginal_distances</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>, <span class="va">marginal_distances</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>,</span>
 <span>  training_idx <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_train</span><span class="op">)</span>,</span>
 <span>  test_idx <span class="op">=</span> <span class="va">N_train</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_test</span><span class="op">)</span>,</span>
-<span>  y_train <span class="op">=</span> <span class="va">angles</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_train</span><span class="op">)</span><span class="op">]</span>, runs <span class="op">=</span> <span class="fl">50L</span>, cores <span class="op">=</span> <span class="fl">2L</span><span class="op">)</span></span>
+<span>  y_train <span class="op">=</span> <span class="va">angles</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_train</span><span class="op">)</span><span class="op">]</span>, </span>
+<span>  y_test <span class="op">=</span> <span class="va">angles</span><span class="op">[</span><span class="va">N_train</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_test</span><span class="op">)</span><span class="op">]</span>,</span>
+<span>  runs <span class="op">=</span> <span class="fl">50L</span>, cores <span class="op">=</span> <span class="fl">2L</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">total_fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt; List of 8</span></span>
 <span><span class="co">#&gt;  $ kernels         : chr [1:3] "rbf" "rbf" "rbf"</span></span>
 <span><span class="co">#&gt;  $ test_predictions: num [1:20] 0.247 0.69 0.247 0.549 0.085 ...</span></span>
 <span><span class="co">#&gt;  $ test_variance   : num [1:20, 1:20] 0.00081 NA NA NA NA ...</span></span>
-<span><span class="co">#&gt;  $ RMSE            : logi NA</span></span>
-<span><span class="co">#&gt;  $ length_scale    : num [1:3] 0.421 3.834 5.484</span></span>
-<span><span class="co">#&gt;  $ scaling_factor  : num [1:3] 0.00117 0.24723 0.12466</span></span>
-<span><span class="co">#&gt;  $ noise_variance  : num 2.89e-08</span></span>
+<span><span class="co">#&gt;  $ RMSE            : num 0.047</span></span>
+<span><span class="co">#&gt;  $ length_scale    : num [1:3] 0.421 3.836 5.492</span></span>
+<span><span class="co">#&gt;  $ scaling_factor  : num [1:3] 0.00117 0.24754 0.12501</span></span>
+<span><span class="co">#&gt;  $ noise_variance  : num 1.8e-07</span></span>
 <span><span class="co">#&gt;  $ nll             : num -63.1</span></span></code></pre></div>
+<p>Instead of the Gaussian RBF kernel, the Matérn kernels with
+smoothness parameter
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ν</mi><mo>=</mo><mn>0.5</mn><mo>,</mo><mn>1.5</mn><mo>,</mo><mn>2.5</mn></mrow><annotation encoding="application/x-tex">\nu = 0.5, 1.5, 2.5</annotation></semantics></math>
+can be used. We can use a different kernel for each distance matrix; the
+total kernel used is then the conical combination of these kernels. For
+instance, the following fit uses the Matérn kernel with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ν</mi><mo>=</mo><mn>2.5</mn></mrow><annotation encoding="application/x-tex">\nu = 2.5</annotation></semantics></math>
+for the sliced Wasserstein distances, the Matérn kernel with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ν</mi><mo>=</mo><mn>0.5</mn></mrow><annotation encoding="application/x-tex">\nu = 0.5</annotation></semantics></math>
+for the Wasserstein distances along the first axis, and the Matérn
+kernel with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ν</mi><mo>=</mo><mn>1.5</mn></mrow><annotation encoding="application/x-tex">\nu = 1.5</annotation></semantics></math>
+for the Wasserstein distances alogn the second axis.</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">total_fit_matern</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fit_gpr.html">fit_gpr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">sw_distances</span>, <span class="va">marginal_distances</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>, <span class="va">marginal_distances</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>  training_idx <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_train</span><span class="op">)</span>,</span>
+<span>  test_idx <span class="op">=</span> <span class="va">N_train</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_test</span><span class="op">)</span>,</span>
+<span>  y_train <span class="op">=</span> <span class="va">angles</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_train</span><span class="op">)</span><span class="op">]</span>, </span>
+<span>  y_test <span class="op">=</span> <span class="va">angles</span><span class="op">[</span><span class="va">N_train</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_test</span><span class="op">)</span><span class="op">]</span>,</span>
+<span>  kernels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"matern25"</span>, <span class="st">"matern05"</span>, <span class="st">"matern15"</span><span class="op">)</span>,</span>
+<span>  runs <span class="op">=</span> <span class="fl">50L</span>, cores <span class="op">=</span> <span class="fl">2L</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">total_fit_matern</span><span class="op">)</span></span>
+<span><span class="co">#&gt; List of 8</span></span>
+<span><span class="co">#&gt;  $ kernels         : chr [1:3] "matern25" "matern05" "matern15"</span></span>
+<span><span class="co">#&gt;  $ test_predictions: num [1:20] 0.254 0.664 0.2329 0.5286 0.0812 ...</span></span>
+<span><span class="co">#&gt;  $ test_variance   : num [1:20, 1:20] 0.0105 NA NA NA NA ...</span></span>
+<span><span class="co">#&gt;  $ RMSE            : num 0.0555</span></span>
+<span><span class="co">#&gt;  $ length_scale    : num [1:3] 0.421 3.829 5.476</span></span>
+<span><span class="co">#&gt;  $ scaling_factor  : num [1:3] 0.00117 0.24629 0.1243</span></span>
+<span><span class="co">#&gt;  $ noise_variance  : num 2.07e-07</span></span>
+<span><span class="co">#&gt;  $ nll             : num -63.1</span></span></code></pre></div>
+<p>Finally, a GPR’s <strong>negative log predictive density</strong>
+(NLPD) for some test data can be obtained like so:</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/nlpd_gpr.html">nlpd_gpr</a></span><span class="op">(</span><span class="va">total_fit_matern</span>, <span class="va">angles</span><span class="op">[</span><span class="va">N_train</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_test</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning in nlpd_gpr(total_fit_matern, angles[N_train + seq_len(N_test)]): The fit's test variance contains NAs, likely because the distances among the test inputs weren't provided.</span></span>
+<span><span class="co">#&gt; Replacing NAs by 0.</span></span>
+<span><span class="co">#&gt; [1] -1.137902</span></span>
+<span><span class="co">#&gt; attr(,"jitter_used")</span></span>
+<span><span class="co">#&gt; [1] 0</span></span></code></pre></div>
+<p>The warning message occurs because we didn’t compute the distances
+among the test inputs themselves. As a result, the kernel matrices don’t
+specify the covariance among the test inputs, and the NLPD assumes that
+they are zero. If you remove the <code>test_idx</code> parameter setting
+when running <code><a href="../reference/compute_all_distances.html">compute_all_distances()</a></code> and refit the models,
+this warning will disappear.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
