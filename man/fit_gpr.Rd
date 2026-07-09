@@ -103,4 +103,20 @@ segments(x0 = x_test,
   y1 = fit$test_predictions + 2 * sqrt(diag(fit$test_variance)))
 fit
 fit$RMSE
+
+fit <- fit_gpr(D2, seq_len(N1), N1 + seq_len(N2), y_train, y_test,
+  runs = 50L, cores = 2, kernel = "matern15")
+curve(x * plogis(x) * cos(x), -pi, pi,
+  ylim = range(
+    c(y_train, fit$test_predictions + 2 * sqrt(diag(fit$test_variance)),
+               fit$test_predictions - 2 * sqrt(diag(fit$test_variance)))
+   )
+ )
+points(x_train, y_train, pch = 1)
+points(x_test, fit$test_predictions, pch = 16)
+segments(x0 = x_test,
+  y0 = fit$test_predictions - 2 * sqrt(diag(fit$test_variance)),
+  y1 = fit$test_predictions + 2 * sqrt(diag(fit$test_variance)))
+fit
+fit$RMSE
 }
