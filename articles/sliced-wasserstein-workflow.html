@@ -342,9 +342,9 @@ parameter:</p>
 <span><span class="co">#&gt;  $ test_predictions: num [1:20] 0.247 0.69 0.247 0.549 0.085 ...</span></span>
 <span><span class="co">#&gt;  $ test_variance   : num [1:20, 1:20] 0.00081 NA NA NA NA ...</span></span>
 <span><span class="co">#&gt;  $ RMSE            : num 0.047</span></span>
-<span><span class="co">#&gt;  $ length_scale    : num [1:3] 0.421 3.836 5.492</span></span>
-<span><span class="co">#&gt;  $ scaling_factor  : num [1:3] 0.00117 0.24754 0.12501</span></span>
-<span><span class="co">#&gt;  $ noise_variance  : num 1.8e-07</span></span>
+<span><span class="co">#&gt;  $ length_scale    : num [1:3] 0.421 3.836 5.49</span></span>
+<span><span class="co">#&gt;  $ scaling_factor  : num [1:3] 0.00117 0.24754 0.12492</span></span>
+<span><span class="co">#&gt;  $ noise_variance  : num 1.05e-07</span></span>
 <span><span class="co">#&gt;  $ nll             : num -63.1</span></span></code></pre></div>
 <p>Instead of the Gaussian RBF kernel, the Matérn kernels with
 smoothness parameter
@@ -373,9 +373,9 @@ for the Wasserstein distances alogn the second axis.</p>
 <span><span class="co">#&gt;  $ test_predictions: num [1:20] 0.254 0.664 0.2329 0.5286 0.0812 ...</span></span>
 <span><span class="co">#&gt;  $ test_variance   : num [1:20, 1:20] 0.0105 NA NA NA NA ...</span></span>
 <span><span class="co">#&gt;  $ RMSE            : num 0.0555</span></span>
-<span><span class="co">#&gt;  $ length_scale    : num [1:3] 0.421 3.829 5.476</span></span>
-<span><span class="co">#&gt;  $ scaling_factor  : num [1:3] 0.00117 0.24629 0.1243</span></span>
-<span><span class="co">#&gt;  $ noise_variance  : num 2.07e-07</span></span>
+<span><span class="co">#&gt;  $ length_scale    : num [1:3] 0.421 3.825 5.465</span></span>
+<span><span class="co">#&gt;  $ scaling_factor  : num [1:3] 0.00118 0.2461 0.1237</span></span>
+<span><span class="co">#&gt;  $ noise_variance  : num 3.6e-08</span></span>
 <span><span class="co">#&gt;  $ nll             : num -63.1</span></span></code></pre></div>
 <p>Finally, a GPR’s <strong>negative log predictive density</strong>
 (NLPD) for some test data can be obtained like so:</p>
@@ -383,7 +383,7 @@ for the Wasserstein distances alogn the second axis.</p>
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/nlpd_gpr.html">nlpd_gpr</a></span><span class="op">(</span><span class="va">total_fit_matern</span>, <span class="va">angles</span><span class="op">[</span><span class="va">N_train</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">N_test</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning in nlpd_gpr(total_fit_matern, angles[N_train + seq_len(N_test)]): The fit's test variance contains NAs, likely because the distances among the test inputs weren't provided.</span></span>
 <span><span class="co">#&gt; Replacing NAs by 0.</span></span>
-<span><span class="co">#&gt; [1] -1.137902</span></span>
+<span><span class="co">#&gt; [1] -1.13788</span></span>
 <span><span class="co">#&gt; attr(,"jitter_used")</span></span>
 <span><span class="co">#&gt; [1] 0</span></span></code></pre></div>
 <p>The warning message occurs because we didn’t compute the distances

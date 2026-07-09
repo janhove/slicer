@@ -313,9 +313,9 @@ str(total_fit)
 #>  $ test_predictions: num [1:20] 0.247 0.69 0.247 0.549 0.085 ...
 #>  $ test_variance   : num [1:20, 1:20] 0.00081 NA NA NA NA ...
 #>  $ RMSE            : num 0.047
-#>  $ length_scale    : num [1:3] 0.421 3.836 5.492
-#>  $ scaling_factor  : num [1:3] 0.00117 0.24754 0.12501
-#>  $ noise_variance  : num 1.8e-07
+#>  $ length_scale    : num [1:3] 0.421 3.836 5.49
+#>  $ scaling_factor  : num [1:3] 0.00117 0.24754 0.12492
+#>  $ noise_variance  : num 1.05e-07
 #>  $ nll             : num -63.1
 ```
 
@@ -343,9 +343,9 @@ str(total_fit_matern)
 #>  $ test_predictions: num [1:20] 0.254 0.664 0.2329 0.5286 0.0812 ...
 #>  $ test_variance   : num [1:20, 1:20] 0.0105 NA NA NA NA ...
 #>  $ RMSE            : num 0.0555
-#>  $ length_scale    : num [1:3] 0.421 3.829 5.476
-#>  $ scaling_factor  : num [1:3] 0.00117 0.24629 0.1243
-#>  $ noise_variance  : num 2.07e-07
+#>  $ length_scale    : num [1:3] 0.421 3.825 5.465
+#>  $ scaling_factor  : num [1:3] 0.00118 0.2461 0.1237
+#>  $ noise_variance  : num 3.6e-08
 #>  $ nll             : num -63.1
 ```
 
@@ -357,7 +357,7 @@ test data can be obtained like so:
 nlpd_gpr(total_fit_matern, angles[N_train + seq_len(N_test)])
 #> Warning in nlpd_gpr(total_fit_matern, angles[N_train + seq_len(N_test)]): The fit's test variance contains NAs, likely because the distances among the test inputs weren't provided.
 #> Replacing NAs by 0.
-#> [1] -1.137902
+#> [1] -1.13788
 #> attr(,"jitter_used")
 #> [1] 0
 ```
