@@ -40,6 +40,10 @@ nlpd_gpr <- function(fit, y_test, add_noise = TRUE, nugget = 1e-10) {
   if (is.vector(Sigma)) {
     Sigma <- as.matrix(Sigma)
   }
+  if (any(is.na(Sigma))) {
+    warning("The fit's test variance contains NAs, likely because the distances among the test inputs weren't provided.\nReplacing NAs by 0.")
+    Sigma[is.na(Sigma)] <- 0
+  }
   if (add_noise) {
     diag(Sigma) <- diag(Sigma) + fit$noise_variance
   }
@@ -82,3 +86,4 @@ nlpd_gpr <- function(fit, y_test, add_noise = TRUE, nugget = 1e-10) {
   attr(nlpd, "jitter_used") <- attr(pd_check, "jitter_used")
   nlpd
 }
+
