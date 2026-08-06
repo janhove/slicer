@@ -484,7 +484,7 @@ fit_gpr_multiple <- function(
   D2_train_list <- lapply(D2_list, select_entries, training_idx)
   params <- find_gpr_hyperparameters_multiple(
     D2_train_list, y_train, centre = centre, use_gradient = use_gradient,
-    runs = runs, verbose = verbose
+    runs = runs, verbose = verbose, kernels = kernels
   )
   variance <- params$variance
   length_scale <- params$length_scale
