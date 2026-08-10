@@ -33,7 +33,7 @@ matrix are returned.}
 \value{
 If \code{Kxstarstar} is \code{NULL} (default), a vector with posterior mean
 predictions for the test inputs. Else, a list with a vector
-\code{mean} with posterior mean predictions and a matrix \code{var} with the posterior
+\code{test_predictions} with posterior mean predictions and a matrix \code{test_variance} with the posterior
 covariance for the test inputs.
 }
 \description{
@@ -60,6 +60,6 @@ points(x_test, gpr_predict(Kxx, Kxstar, y_train), pch = 16)
 # Add credible intervals around predictions:
 gpr_fit <- gpr_predict(Kxx, Kxstar, y_train, Kxstarstar = Kxstarstar)
 segments(x0 = x_test,
-         y0 = gpr_fit$mean - 2 * sqrt(diag(gpr_fit$var)),
-         y1 = gpr_fit$mean + 2 * sqrt(diag(gpr_fit$var)), col = "#4DAF4A")
+         y0 = gpr_fit$test_predictions - 2 * sqrt(diag(gpr_fit$test_variance)),
+         y1 = gpr_fit$test_predictions + 2 * sqrt(diag(gpr_fit$test_variance)), col = "#4DAF4A")
 }

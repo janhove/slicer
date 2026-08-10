@@ -18,7 +18,7 @@
 #'
 #' @return If `Kxstarstar` is `NULL` (default), a vector with posterior mean
 #'  predictions for the test inputs. Else, a list with a vector
-#'  `mean` with posterior mean predictions and a matrix `var` with the posterior
+#'  `test_predictions` with posterior mean predictions and a matrix `test_variance` with the posterior
 #'  covariance for the test inputs.
 #' @export
 #'
@@ -40,8 +40,8 @@
 #' # Add credible intervals around predictions:
 #' gpr_fit <- gpr_predict(Kxx, Kxstar, y_train, Kxstarstar = Kxstarstar)
 #' segments(x0 = x_test,
-#'          y0 = gpr_fit$mean - 2 * sqrt(diag(gpr_fit$var)),
-#'          y1 = gpr_fit$mean + 2 * sqrt(diag(gpr_fit$var)), col = "#4DAF4A")
+#'          y0 = gpr_fit$test_predictions - 2 * sqrt(diag(gpr_fit$test_variance)),
+#'          y1 = gpr_fit$test_predictions + 2 * sqrt(diag(gpr_fit$test_variance)), col = "#4DAF4A")
 gpr_predict <- function(Kxx, Kxstar, y_train, centre = TRUE, lambda2 = 1e-6, Kxstarstar = NULL) {
   if (centre) {
     y_mean <- mean(y_train)
@@ -84,7 +84,12 @@ gpr_predict <- function(Kxx, Kxstar, y_train, centre = TRUE, lambda2 = 1e-6, Kxs
   V <- backsolve(U, t(Kxstar), transpose = TRUE)
   var_pred <- Kxstarstar - crossprod(V)
   var_pred <- (var_pred + t(var_pred)) / 2 # enforce symmetry, just to be safe
-  list(mean = mean_pred, var = var_pred)
+
+  list(
+    test_predictions = mean_pred,
+    test_variance = var_pred,
+    noise_variance = unname(lambda2)
+  )
 }
 
 #' Estimate Gaussian Process Hyperparameters
@@ -425,9 +430,9 @@ fit_gpr_single <- function(
 
   list(
     kernels = kernel,
-    test_predictions = predictions$mean,
-    test_variance = predictions$var,
-    RMSE = if (is.null(y_test)) NA else sqrt(mean((predictions$mean - y_test)^2)),
+    test_predictions = predictions$test_predictions,
+    test_variance = predictions$test_variance,
+    RMSE = if (is.null(y_test)) NA else sqrt(mean((predictions$test_predictions - y_test)^2)),
     length_scale = unname(length_scale),
     scaling_factor = unname(variance),
     noise_variance = unname(lambda2),
@@ -501,9 +506,9 @@ fit_gpr_multiple <- function(
 
   list(
     kernels = kernels,
-    test_predictions = predictions$mean,
-    test_variance = predictions$var,
-    RMSE = if (is.null(y_test)) NA else sqrt(mean((predictions$mean - y_test)^2)),
+    test_predictions = predictions$test_predictions,
+    test_variance = predictions$test_variance,
+    RMSE = if (is.null(y_test)) NA else sqrt(mean((predictions$test_predictions - y_test)^2)),
     length_scale = unname(length_scale),
     scaling_factor = unname(variance),
     noise_variance = unname(lambda2),
