@@ -162,15 +162,15 @@ sw_fit <- fit_gpr(sw_distances,
   y_test = angles[N_train + seq_len(N_test)],
   verbose = TRUE)
 #> Hyperparameter search 1 of 10.
-#> Optimum set at -58.8175077.
+#> Optimum set at -58.8148778.
 #> Hyperparameter search 2 of 10.
 #> Hyperparameter search 3 of 10.
 #> Hyperparameter search 4 of 10.
 #> Hyperparameter search 5 of 10.
+#> Current optimum improved from -58.8148778 to -58.8173233.
 #> Hyperparameter search 6 of 10.
 #> Hyperparameter search 7 of 10.
 #> Hyperparameter search 8 of 10.
-#> Current optimum improved from -58.8175077 to -58.8176617.
 #> Hyperparameter search 9 of 10.
 #> Hyperparameter search 10 of 10.
 ```
@@ -189,7 +189,7 @@ str(sw_fit)
 #>  $ RMSE            : num 0.038
 #>  $ length_scale    : num 1.57
 #>  $ scaling_factor  : num 0.0758
-#>  $ noise_variance  : num 1.57e-07
+#>  $ noise_variance  : num 3.35e-07
 #>  $ nll             : num -58.8
 plot(angles[N_train + seq_len(N_test)], sw_fit$test_predictions,
      xlab = "true test outcomes", ylab = "predicted test outcomes", asp = 1)
@@ -204,10 +204,10 @@ predictions variances are reported (the main diagonal of
 ``` r
 
 diag(sw_fit$test_variance)
-#>  [1] 0.0013366282 0.0021746730 0.0009410588 0.0024842495 0.0009932353
-#>  [6] 0.0012133334 0.0026980876 0.0017291003 0.0009257171 0.0010941720
-#> [11] 0.0014113678 0.0014527097 0.0008645677 0.0009060975 0.0030615151
-#> [16] 0.0008919646 0.0017044887 0.0039857607 0.0025413811 0.0023768280
+#>  [1] 0.0013365855 0.0021745879 0.0009410476 0.0024841724 0.0009932429
+#>  [6] 0.0012133130 0.0026980077 0.0017290988 0.0009256886 0.0010941631
+#> [11] 0.0014113185 0.0014526917 0.0008645438 0.0009060660 0.0030613958
+#> [16] 0.0008919528 0.0017044590 0.0039856770 0.0025413126 0.0023767505
 ```
 
 Had we also computed the distances between the test inputs,
@@ -273,7 +273,7 @@ total_fit <- fit_gpr(list(sw_distances, marginal_distances[[1]], marginal_distan
 #> Hyperparameter search 2 of 10.
 #> Current optimum improved from -58.8320454 to -61.5129334.
 #> Hyperparameter search 3 of 10.
-#> Current optimum improved from -61.5129334 to -63.080251.
+#> Current optimum improved from -61.5129334 to -63.0802534.
 #> Hyperparameter search 4 of 10.
 #> Hyperparameter search 5 of 10.
 #> Hyperparameter search 6 of 10.
@@ -287,8 +287,8 @@ str(total_fit)
 #>  $ test_predictions: num [1:20] 0.247 0.69 0.247 0.549 0.085 ...
 #>  $ test_variance   : num [1:20, 1:20] 0.00081 NA NA NA NA ...
 #>  $ RMSE            : num 0.047
-#>  $ length_scale    : num [1:3] 0.421 3.833 5.482
-#>  $ scaling_factor  : num [1:3] 0.00118 0.24703 0.12446
+#>  $ length_scale    : num [1:3] 0.421 3.836 5.488
+#>  $ scaling_factor  : num [1:3] 0.00117 0.24748 0.12484
 #>  $ noise_variance  : num 3.32e-08
 #>  $ nll             : num -63.1
 plot(angles[N_train + seq_len(N_test)], total_fit$test_predictions,
@@ -313,9 +313,9 @@ str(total_fit)
 #>  $ test_predictions: num [1:20] 0.247 0.69 0.247 0.549 0.085 ...
 #>  $ test_variance   : num [1:20, 1:20] 0.00081 NA NA NA NA ...
 #>  $ RMSE            : num 0.047
-#>  $ length_scale    : num [1:3] 0.421 3.837 5.494
-#>  $ scaling_factor  : num [1:3] 0.00117 0.24769 0.12513
-#>  $ noise_variance  : num 1.09e-07
+#>  $ length_scale    : num [1:3] 0.421 3.834 5.483
+#>  $ scaling_factor  : num [1:3] 0.00117 0.2472 0.12462
+#>  $ noise_variance  : num 1.99e-08
 #>  $ nll             : num -63.1
 ```
 
@@ -343,9 +343,9 @@ str(total_fit_matern)
 #>  $ test_predictions: num [1:20] 0.242 0.709 0.24 0.507 0.061 ...
 #>  $ test_variance   : num [1:20, 1:20] 0.00133 NA NA NA NA ...
 #>  $ RMSE            : num 0.0377
-#>  $ length_scale    : num [1:3] 2.71 1.69e+04 2.03e+07
-#>  $ scaling_factor  : num [1:3] 1.34e-01 7.23e-09 4.17e-10
-#>  $ noise_variance  : num 4.96e-09
+#>  $ length_scale    : num [1:3] 2.71 1.69e+06 3.02e-02
+#>  $ scaling_factor  : num [1:3] 1.34e-01 1.53e-06 8.11e-13
+#>  $ noise_variance  : num 2.38e-09
 #>  $ nll             : num -58.6
 ```
 
@@ -357,7 +357,7 @@ test data can be obtained like so:
 nlpd_gpr(total_fit_matern, angles[N_train + seq_len(N_test)])
 #> Warning in nlpd_gpr(total_fit_matern, angles[N_train + seq_len(N_test)]): The fit's test variance contains NAs, likely because the distances among the test inputs weren't provided.
 #> Replacing NAs by 0.
-#> [1] -1.955064
+#> [1] -1.955071
 #> attr(,"jitter_used")
 #> [1] 0
 ```
