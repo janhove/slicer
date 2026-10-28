@@ -13,7 +13,6 @@ BugReports: https://github.com/janhove/slicer/issues
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 8.0.0
 Imports: 
     MASS,
     mvtnorm,
@@ -27,3 +26,4 @@ Suggests:
 VignetteBuilder: knitr
 LinkingTo: 
     Rcpp
+Config/roxygen2/version: 8.1.0

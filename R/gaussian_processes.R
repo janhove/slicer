@@ -199,6 +199,7 @@ find_gpr_hyperparameters <- function(
   }
 
   # Hyperparameter search ------------------------------------------------------
+  ctrl <- list(reltol = 1e-6)
   best <- NULL
   for (i in seq_len(runs)) {
     if (verbose) message(paste0("Hyperparameter search ", i, " of ", runs, "."))
@@ -208,12 +209,12 @@ find_gpr_hyperparameters <- function(
 
     if (use_gradient) {
       fit <- tryCatch(
-        stats::optim(init, nll, gr = gradient, method = "BFGS"),
+        stats::optim(init, nll, gr = gradient, method = "BFGS", control = ctrl),
         error = function(e) { NULL }
       )
     } else {
       fit <- tryCatch(
-        stats::optim(init, nll, method = "BFGS"),
+        stats::optim(init, nll, method = "BFGS", control = ctrl),
         error = function(e) { NULL }
       )
     }
