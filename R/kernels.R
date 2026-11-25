@@ -64,15 +64,14 @@ rbf_multiple <- function(D_list, length_scales, variances, squared = TRUE) {
   }
   outcome
 }
-#' Matérn Kernels
+#' Matérn Kernel
 #'
-#' Builds a Matérn kernel (with smoothness parameter 0.5, 1.5 or 2.5) from a
-#' distance matrix.
+#' Builds a Matérn kernel from a distance matrix.
 #'
 #' @param D Matrix with pairwise (possibly squared) distances.
 #' @param length_scale Length-scale parameter.
 #' @param variance Kernel variance parameter.
-#' @param tau Smoothness parameter. needs to be 0.5, 1.5 (default) or 2.5.
+#' @param nu Smoothness parameter. Defaults to 1.5.
 #' @param squared If `TRUE` (default), `D` is assumed to contain squared
 #'    distances. Set to `FALSE` if this is not the case.
 #'
@@ -83,23 +82,16 @@ rbf_multiple <- function(D_list, length_scales, variances, squared = TRUE) {
 #' M <- rbind(c(0, 2, 1),
 #'            c(2, 0, 2.5),
 #'            c(1, 2.5, 0))
-#' matern(M, tau = 0.5, squared = FALSE)
-#' matern(M, tau = 1.5, squared = FALSE)
-#' matern(M, tau = 2.5, squared = FALSE)
-matern <- function(D, length_scale = 1, variance = 1, tau = 1.5,
+#' matern(M, nu = 0.5, squared = FALSE)
+#' matern(M, nu = 1.5, squared = FALSE)
+#' matern(M, nu = 2.5, squared = FALSE)
+matern <- function(D, length_scale = 1, variance = 1, nu = 1.5,
   squared = TRUE) {
-  if (!(tau %in% c(0.5, 1.5, 2.5))) stop("tau must be 0.5, 1.5 or 2.5.")
   if (squared) D <- sqrt(D)
-  if (tau == 0.5) {
-    return(variance * exp(-D / (2 * length_scale)))
-  }
-  if (tau == 1.5) {
-    return(variance * (1 + sqrt(3) * D / length_scale) *
-             exp(-sqrt(3) * D / length_scale))
-  }
-  variance *
-    (1 + sqrt(5) * D / length_scale + 5 * D^2 / (3 * length_scale^2)) *
-    exp(-sqrt(5) * D / length_scale)
+  val <- variance * 2^(1 - nu) / gamma(nu) * (sqrt(2 * nu) * D / length_scale)^nu * besselK(sqrt(2 * nu) * D / length_scale, nu)
+  if (is.matrix(val)) diag(val) <- variance
+  val[D == 0] <- variance
+  val
 }
 #' Sum of Matérn Kernels
 #'
@@ -109,8 +101,7 @@ matern <- function(D, length_scale = 1, variance = 1, tau = 1.5,
 #' @param D_list A list of matrices with pairwise (possibly squared) distances.
 #' @param length_scales A vector of length-scale parameters.
 #' @param variances A vector of kernel variance parameters.
-#' @param taus A vector of smoothness parameters.
-#'    Values need to be in 0.5, 1.5 and 2.5.
+#' @param nus A vector of smoothness parameters.
 #'    If only a single value is provided, it will be used for all components.
 #' @param squared If `TRUE` (default), each distance matrix is assumed to
 #'    contain squared distances. If `FALSE`, each distance matrix is assumed to
@@ -128,16 +119,16 @@ matern <- function(D, length_scale = 1, variance = 1, tau = 1.5,
 #'             c(4, 3, 0))
 #' M_list <- list(M1, M2)
 #' matern_multiple(M_list, length_scales = c(1, 2), variances = c(2, 1/2),
-#'   taus = c(0.5, 2.5), squared = FALSE)
-matern_multiple <- function(D_list, length_scales, variances, taus,
+#'   nus = c(0.5, 2.5), squared = FALSE)
+matern_multiple <- function(D_list, length_scales, variances, nus,
   squared = TRUE) {
   L <- length(D_list)
   if (length(length_scales) != L) {
     stop("length_scales, D_list don't have same length.")
   }
   if (length(variances) != L) stop("variances, D_list don't have same length.")
-  if (length(taus) == 1L) taus <- rep(taus, L)
-  if (length(taus) != L) stop("taus, D_list don't have same length.")
+  if (length(nus) == 1L) nus <- rep(nus, L)
+  if (length(nus) != L) stop("nus, D_list don't have same length.")
   N <- ncol(D_list[[1]])
   outcome <- matrix(0, nrow = N, ncol = N)
   for (ell in 1:L) {
@@ -147,19 +138,51 @@ matern_multiple <- function(D_list, length_scales, variances, taus,
     }
     outcome <- outcome +
       matern(D_list[[ell]], length_scale = length_scales[[ell]],
-          variance = variances[[ell]], tau = taus[[ell]], squared = squared)
+          variance = variances[[ell]], nu = nus[[ell]], squared = squared)
   }
   outcome
 }
-#' Sum of Kernels
+#' Power Exponential Kernel
 #'
-#' Builds kernel matrices from a list of distances matrices and computes
-#' their sum.
+#' Builds a power exponential kernel from a distance matrix.
 #'
-#' @param D2_list A list of matrices with squared pairwise distances.
+#' @param D Matrix with pairwise (possibly squared) distances.
+#' @param length_scale Length-scale parameter.
+#' @param variance Kernel variance parameter.
+#' @param expon Exponent. Defaults to 1.
+#' @param squared If `TRUE` (default), `D` is assumed to contain squared
+#'    distances. Set to `FALSE` if this is not the case.
+#'
+#' @return A kernel matrix with the same dimensions as `D`.
+#' @export
+#'
+#' @examples
+#' M <- rbind(c(0, 2, 1),
+#'            c(2, 0, 2.5),
+#'            c(1, 2.5, 0))
+#' powexp(M, expon = 0.5, squared = FALSE)
+#' powexp(M, expon = 1, squared = FALSE)
+#' powexp(M, expon = 2, squared = FALSE)
+powexp <- function(D, length_scale = 1, variance = 1, expon = 1,
+                   squared = TRUE) {
+  if (expon > 2) stop("expon must be at most 2.")
+  if (expon <= 0) stop("expon must be at least 0.")
+  if (squared) D <- sqrt(D)
+  variance * exp(- (D / length_scale)^expon)
+}
+#' Sum of Power Exponential Kernels
+#'
+#' Builds power exponential kernel matrices from a list of distances matrices
+#' and computes their sum.
+#'
+#' @param D_list A list of matrices with pairwise (possibly squared) distances.
 #' @param length_scales A vector of length-scale parameters.
 #' @param variances A vector of kernel variance parameters.
-#' @param kernels A vector of kernels (`rbf`, `matern05`, `matern15`, `matern25`).
+#' @param expons A vector of exponents.
+#'    If only a single value is provided, it will be used for all components.
+#' @param squared If `TRUE` (default), each distance matrix is assumed to
+#'    contain squared distances. If `FALSE`, each distance matrix is assumed to
+#'    contain raw distances.
 #'
 #' @return A kernel matrix with the same dimensions as the matrices in `D_list`.
 #' @export
@@ -171,26 +194,80 @@ matern_multiple <- function(D_list, length_scales, variances, taus,
 #' M2 <- rbind(c(0, 1, 4),
 #'             c(1, 0, 3),
 #'             c(4, 3, 0))
-#' M_list <- list(M1^2, M2^2)
-#' kernel_sum(M_list, length_scales = c(1, 2), variances = c(2, 1/2),
-#'   kernels = c("rbf", "matern15"))
-#'
-kernel_sum <- function(D2_list, length_scales, variances, kernels) {
-  L <- length(D2_list)
+#' M_list <- list(M1, M2)
+#' powexp_multiple(M_list, length_scales = c(1, 2), variances = c(2, 1/2),
+#'   expons = c(0.5, 1.5), squared = FALSE)
+powexp_multiple <- function(D_list, length_scales, variances, expons,
+                            squared = TRUE) {
+  L <- length(D_list)
   if (length(length_scales) != L) {
     stop("length_scales, D_list don't have same length.")
   }
   if (length(variances) != L) stop("variances, D_list don't have same length.")
-  N <- ncol(D2_list[[1]])
+  if (length(expons) == 1L) nus <- rep(expons, L)
+  if (length(expons) != L) stop("nus, D_list don't have same length.")
+  N <- ncol(D_list[[1]])
   outcome <- matrix(0, nrow = N, ncol = N)
   for (ell in 1:L) {
-    if (ncol(D2_list[[ell]]) != N) {
+    if (ncol(D_list[[ell]]) != N) {
       stop(paste0("Distance matrix ", ell,
                   " doesn't have the same number of columns as distance matrix 1."))
     }
     outcome <- outcome +
-      my_kernel(D2_list[[ell]], length_scale = length_scales[[ell]],
-             variance = variances[[ell]], kernel = kernels[[ell]])
+      powexp(D_list[[ell]], length_scale = length_scales[[ell]],
+             variance = variances[[ell]], expon = expons[[ell]], squared = squared)
+  }
+  outcome
+}
+#' Sum of Kernels
+#'
+#' Builds kernel matrices from a list of distances matrices and computes
+#' their sum.
+#'
+#' @param D_list A list of matrices with pairwise (possibly squared) distances.
+#' @param length_scales A vector of length-scale parameters.
+#' @param variances A vector of kernel variance parameters.
+#' @param kernels A vector of kernels (`rbf`, `matern`, `powexp`).
+#' @param params A vector of additional kernel parameters (smoothness parameter
+#'  for Matérn, exponent for power exponential; ignored for RBF).
+#' @param squared If `TRUE` (default), each distance matrix is assumed to
+#'    contain squared distances. If `FALSE`, each distance matrix is assumed to
+#'    contain raw distances.
+#'
+#' @return A kernel matrix with the same dimensions as the matrices in `D_list`.
+#' @export
+#'
+#' @examples
+#' M1 <- rbind(c(0, 2, 1),
+#'             c(2, 0, 2.5),
+#'             c(1, 2.5, 0))
+#' M2 <- rbind(c(0, 1, 4),
+#'             c(1, 0, 3),
+#'             c(4, 3, 0))
+#' M3 <- rbind(c(0, 4, 8),
+#'             c(4, 0, 1),
+#'             c(8, 1, 0))
+#' M_list <- list(M1^2, M2^2, M3^2)
+#' K_sum <- kernel_sum(M_list, length_scales = c(1, 2, 0.5),
+#'                     variances = c(2, 1/2, 0.1),
+#'                     kernels = c("powexp", "matern", "rbf"), params = c(1, 2.3, NA))
+#'
+kernel_sum <- function(D_list, length_scales, variances, kernels, params, squared = TRUE) {
+  L <- length(D_list)
+  if (length(length_scales) != L) {
+    stop("length_scales, D_list don't have same length.")
+  }
+  if (length(variances) != L) stop("variances, D_list don't have same length.")
+  N <- ncol(D_list[[1]])
+  outcome <- matrix(0, nrow = N, ncol = N)
+  for (ell in 1:L) {
+    if (ncol(D_list[[ell]]) != N) {
+      stop(paste0("Distance matrix ", ell,
+                  " doesn't have the same number of columns as distance matrix 1."))
+    }
+    outcome <- outcome +
+      my_kernel(D_list[[ell]], length_scale = length_scales[[ell]],
+             variance = variances[[ell]], kernel = kernels[[ell]], params[[ell]])
   }
   outcome
 }

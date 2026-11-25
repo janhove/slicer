@@ -136,17 +136,23 @@ matrix_trace <- function(M) {
 #'
 #' @noRd
 #'
-#' @param D2 Matrix with squared distances.
+#' @param D Matrix with (possibly squared) pairwise distances.
 #' @param length_scale Length-scale.
 #' @param variance Scaling factor (kernel variance).
-#' @param kernel Kernel name (`"rbf", "matern05", "matern15", "matern25"`).
+#' @param kernel Kernel name ("rbf", "matern", "powerexp").
+#' @param param Additional kernel parameter (smoothness parameter for Matérn,
+#'  exponent for power exponential; ignored for RBF).
+#' @param squared If `TRUE` (default), `D` is assumed to contain squared
+#'    distances. Set to `FALSE` if this is not the case.
 #'
 #' @return Kernel matrix.
-my_kernel <- function(D2, length_scale, variance, kernel) {
+my_kernel <- function(D, length_scale, variance, kernel, param, squared = TRUE) {
   switch(kernel,
-         rbf = rbf(D2, length_scale = length_scale, variance = variance),
-         matern05 = matern(D2, length_scale = length_scale, variance = variance, tau = 0.5),
-         matern15 = matern(D2, length_scale = length_scale, variance = variance, tau = 1.5),
-         matern25 = matern(D2, length_scale = length_scale, variance = variance, tau = 2.5)
+         rbf = rbf(D, length_scale = length_scale, variance = variance,
+                   squared = squared),
+         matern = matern(D, length_scale = length_scale, variance = variance,
+                         nu = param, squared = squared),
+         powexp = powexp(D, length_scale = length_scale, variance = variance,
+                         expon = param, squared = squared)
   )
 }
