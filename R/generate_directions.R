@@ -1,7 +1,7 @@
 #' Generate Random Projection Directions
 #'
-#' Obtain `L` random vectors on the unit sphere in `d`-dimensional
-#' Euclidean space.
+#' Obtain `L` vectors sampled uniformly at random from the unit sphere
+#' in `d`-dimensional Euclidean space.
 #'
 #' @param L Number of projection directions.
 #' @param d Dimensionality of the ambient space.
