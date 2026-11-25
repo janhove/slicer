@@ -258,6 +258,8 @@ kernel_sum <- function(D_list, length_scales, variances, kernels, params, square
     stop("length_scales, D_list don't have same length.")
   }
   if (length(variances) != L) stop("variances, D_list don't have same length.")
+  if (length(kernels) == 1L) kernels <- rep(kernels, L)
+  if (length(params) == 1L) params <- rep(params, L)
   N <- ncol(D_list[[1]])
   outcome <- matrix(0, nrow = N, ncol = N)
   for (ell in 1:L) {
@@ -267,7 +269,8 @@ kernel_sum <- function(D_list, length_scales, variances, kernels, params, square
     }
     outcome <- outcome +
       my_kernel(D_list[[ell]], length_scale = length_scales[[ell]],
-             variance = variances[[ell]], kernel = kernels[[ell]], params[[ell]])
+             variance = variances[[ell]], kernel = kernels[[ell]],
+             param = params[[ell]])
   }
   outcome
 }
