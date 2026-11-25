@@ -9,7 +9,8 @@
 #' @param Kxstar Matrix of kernel values between test and training inputs.
 #'  Each row corresponds to one test input.
 #' @param y_train Vector with training outcomes.
-#' @param centre If `TRUE`, the training outcomes are centred around their mean.
+#' @param centre If `TRUE` (defaults), the training outcomes are centred
+#'  around their mean.
 #' @param lambda2 Kernel noise variance.
 #' @param Kxstarstar Optional. A square matrix of kernel values among the
 #'  test inputs. If `NULL` (default), only posterior means are computed
@@ -18,8 +19,8 @@
 #'
 #' @return If `Kxstarstar` is `NULL` (default), a vector with posterior mean
 #'  predictions for the test inputs. Else, a list with a vector
-#'  `test_predictions` with posterior mean predictions and a matrix `test_variance` with the posterior
-#'  covariance for the test inputs.
+#'  `test_predictions` with posterior mean predictions and
+#'  a matrix `test_variance` with the posterior covariance for the test inputs.
 #' @export
 #'
 #' @examples
@@ -42,53 +43,54 @@
 #' segments(x0 = x_test,
 #'          y0 = gpr_fit$test_predictions - 2 * sqrt(diag(gpr_fit$test_variance)),
 #'          y1 = gpr_fit$test_predictions + 2 * sqrt(diag(gpr_fit$test_variance)), col = "#4DAF4A")
-gpr_predict <- function(Kxx, Kxstar, y_train, centre = TRUE, lambda2 = 1e-6, Kxstarstar = NULL) {
+gpr_predict <- function(Kxx, Kxstar, y_train, centre = TRUE, lambda2 = 1e-6,
+                        Kxstarstar = NULL) {
+  # To do: Input validation.
+
+  n <- nrow(Kxx)
+
+  if (is.vector(Kxstar)) Kxstar <- matrix(Kxstar, nrow = 1)
+
   if (centre) {
     y_mean <- mean(y_train)
     y_train <- y_train - y_mean
   } else {
     y_mean <- 0
   }
-  n <- nrow(Kxx)
-  U <- tryCatch(
-    chol(Kxx + lambda2 * diag(n)),
-    error = function(e) {
-      warning("Cholesky decomposition unsuccessful. Trying jitter escalation.")
-      for (multiplier in c(10, 100, 1000, 10000)) {
-        result <- tryCatch(
-          chol(Kxx + (lambda2 * multiplier) * diag(n)),
-          error = function(e) NULL
-        )
-        if (!is.null(result)) return(result)
-      }
-      stop("Matrix not positive definite even after jitter escalation")
-    }
-  )
+
+  base <- max(lambda2, 1e-10)
+  U <- NULL
+  used <- lambda2
+  for (multiplier in c(1, 10, 100, 1000, 10000)) {
+    used <- ifelse(multiplier == 1, lambda2, base * multiplier)
+    A <- Kxx
+    diag(A) <- diag(A) + used
+    U <- tryCatch(chol(A), error = function(e) NULL)
+    if (!is.null(U)) break
+  }
+  if (is.null(U)) {
+    stop("Matrix not p.d. even after jitter escalation.")
+  }
+  if (used != lambda2) {
+    warning(sprintf("Cholesky decomposition failed with lambda = %g; used %g instead.",
+                    lambda2, used))
+  }
 
   alpha <- backsolve(U, backsolve(U, y_train, transpose = TRUE))
-  mean_pred <- as.vector((Kxstar %*% alpha) + y_mean)
+  mean_pred <- drop(Kxstar %*% alpha) + y_mean
 
   if (is.null(Kxstarstar)) return(mean_pred)
 
-  if (is.vector(Kxstarstar)) {
-    Kxstarstar <- matrix(Kxstarstar)
-  }
-  if (is.vector(Kxstar)) {
-    Kxstar <- matrix(Kxstar, nrow = 1)
-  }
-
-  if (nrow(Kxstarstar) != ncol(Kxstarstar)) {
-    stop("Kxstarstar must be square.")
-  }
+  if (is.vector(Kxstarstar)) Kxstarstar <- matrix(Kxstarstar)
+  if (nrow(Kxstarstar) != ncol(Kxstarstar)) stop("Kxstarstar must be square.")
 
   V <- backsolve(U, t(Kxstar), transpose = TRUE)
   var_pred <- Kxstarstar - crossprod(V)
-  var_pred <- (var_pred + t(var_pred)) / 2 # enforce symmetry, just to be safe
 
   list(
     test_predictions = mean_pred,
     test_variance = var_pred,
-    noise_variance = unname(lambda2)
+    noise_variance = unname(used)
   )
 }
 
@@ -458,7 +460,8 @@ fit_gpr_single <- function(
 #' @param use_gradient If `TRUE`, closed-form expressions for the RBF's gradient are used.
 #'    Else, the optimiser uses the finite-differences method.
 #'    Only used when RBF kernels are used.
-#' @param kernels A vector of kernels (`rbf`, `matern05`, `matern15`, `matern25`).
+#' @param kernels A vector of kernels (`rbf`, `matern`, `powexp`).
+#' @param params A vector of kernel parameters (smoothness for Matérn; exponent for power exponential; ignored for RBF).
 #' @param runs Number of independent attempts to find a minimum when optimising the hyperparameters.
 #' @param verbose If `TRUE`, progress is shown on the console.
 #'
@@ -478,12 +481,13 @@ fit_gpr_single <- function(
 #' D2_1 <- outer(c(x_train1, x_test1), c(x_train1, x_test1), "-")^2
 #' D2_2 <- outer(c(x_train2, x_test2), c(x_train2, x_test2), "-")^2
 #' fit <- fit_gpr_multiple(list(D2_1, D2_2), seq_len(N1), N1 + seq_len(N2),
-#'   y_train, y_test, runs = 50, kernels = c("rbf", "matern15"))
+#'   y_train, y_test, runs = 50, kernels = c("rbf", "matern"), params = c(NA, 1.5))
 #' plot(fit$test_predictions, y_test)
 #' fit$RMSE
 fit_gpr_multiple <- function(
     D2_list, training_idx, test_idx, y_train, y_test = NULL,
-    centre = TRUE, use_gradient = TRUE, kernels = "rbf", runs = 10, verbose = TRUE) {
+    centre = TRUE, use_gradient = TRUE, kernels = "rbf",
+    params, runs = 10, verbose = TRUE) {
   select_entries <- function(M, idx) {
     M[idx, idx]
   }
