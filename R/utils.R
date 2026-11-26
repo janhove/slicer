@@ -151,8 +151,11 @@ my_kernel <- function(D, length_scale, variance, kernel, param, squared = TRUE) 
          rbf = rbf(D, length_scale = length_scale, variance = variance,
                    squared = squared),
          matern = matern(D, length_scale = length_scale, variance = variance,
-                         nu = param, squared = squared),
-         powexp = powexp(D, length_scale = length_scale, variance = variance,
-                         expon = param, squared = squared)
+                         nu = param,
+                         squared = squared),
+         powexp = powexp(D, length_scale = length_scale,
+                         variance = variance,
+                         expon = param,
+                         squared = squared)
   )
 }

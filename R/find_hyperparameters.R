@@ -1,34 +1,65 @@
-#' Estimate Gaussian Process Hyperparameters When Using Multiple Kernels
+#' Estimate Gaussian Process Hyperparameters
 #'
-#' This functions works exactly like \link{find_gpr_hyperparameters()},
-#' but takes a list of squared-distance matrices rather than a single such
-#' matrix. You can also specify a vector of kernels rather than a single one.
+#' The hyperparameters are estimated by minimising the model's marginal
+#' negative log-likelihood using the BFGS algorithm.
+#' If you feed multiple distance matrices to this function,
+#' a sum of kernels is built, with each summand having a separate
+#' length-scale and variances.
 #'
 #' @noRd
-find_gpr_hyperparameters_multiple <- function(
-    D2_list, y_train, centre = TRUE,
-    use_gradient = TRUE, kernels = "rbf", params = NA,
-    runs = 10, verbose = TRUE, maxit = 500
+#'
+#' @param D2 Matrix, or list of matrices, with squared pairwise distances between the
+#'    training objects only, or
+#' @param y_train Vector with outcomes for the training objects.
+#' @param centre Set to `TRUE` (default) when centring training outcomes
+#'    around their mean.
+#' @param use_gradient If `TRUE`, closed-form expressions for the RBF's
+#'    gradient are used. Else, the optimiser uses the finite-differences method.
+#'    If the kernel used is not the RBF, this value is currently reset to `FALSE`.
+#' @param kernels A vector with the names of the kernel functions to be applied
+#'    to each distance matrix.
+#'    `"rbf"` for the Gaussian RBF kernel (default),
+#'    `"matern"` for the Matérn covariance function, and `"powexp"` for the
+#'    power exponential kernel.
+#'    If a single kernel is specified but a list of distance matrices is supplied,
+#'    the same kernel is used for all distance matrices.
+#' @param params A vector with additional kernel parameters
+#'    (smoothness for Matérn, exponent for power exponential; ignored for RBF).
+#'    If a single kernel is specified but a list of distance matrices is supplied,
+#'    the same kernel is used for all distance matrices.
+#' @param runs Number of independent attempts to find a minimum.
+#' @param verbose If `TRUE`, progress is shown.
+#' @param maxit Maximum number of iterations during optimisation.
+#'
+#' @return A list containing the kernels used, the estimated hyperparameters
+#'    (kernel variance and kernel length-scale for each kernel as well as
+#'    noise variance) as well as the marginal negative log-likelihood achieved.
+find_hyperparameters <- function(
+    D2, y_train, centre = TRUE, use_gradient = TRUE, kernels = "rbf",
+    params = NA, runs = 10, verbose = TRUE, maxit = 500
 ) {
   # Set kernel -----------------------------------------------------------------
   if (any(!(kernels %in% c("rbf", "powexp", "matern")))) {
     stop("There is at least one invalid kernel name.")
   }
 
-  if (length(kernels) == 1L) kernels <- rep(kernels, length(D2_list))
-  if (length(params) == 1L) params <- rep(params, length(D2_list))
+  if (length(kernels) == 1L) kernels <- rep(kernels, length(D2))
+  if (length(params) == 1L) params <- rep(params, length(D2))
 
+  # For later: Generalise use of gradients to other kernels
   use_gradient <- use_gradient && all(kernels == "rbf")
 
   # Precomputations ------------------------------------------------------------
-  L <- length(D2_list)
-  n <- length(y_train)
-  meds <- vapply(D2_list, find_median, FUN.VALUE = 0.0) |> sqrt()
-  log_yvar <- log(stats::var(y_train))
+  if (!is.list(D2)) D2 <- list(D2)
+  L <- length(D2)
 
   if (centre) y_train <- y_train - mean(y_train)
+  n <- length(y_train)
+  log_yvar <- log(stats::var(y_train))
 
-  # Cacheing -------------------------------------------------------------------
+  meds <- sqrt(vapply(D2, find_median, FUN.VALUE = 0.0))
+
+  # Cacheing (initialisation) --------------------------------------------------
   last_log_params <- NULL
   last_K_list <- vector("list", L)
   last_U <- NULL
@@ -44,7 +75,7 @@ find_gpr_hyperparameters_multiple <- function(
       function(K_l, va, ls, krnl, param)
         va * my_kernel(K_l, variance = 1, length_scale = ls,
                        kernel = krnl, param = param),
-      D2_list, va_vec, ls_vec, kernels, params,
+      D2, va_vec, ls_vec, kernels, params,
       SIMPLIFY = FALSE
     )
     K <- Reduce(`+`, K_list)
@@ -63,8 +94,7 @@ find_gpr_hyperparameters_multiple <- function(
     drop(0.5 * crossprod(y_train, last_a) + sum(log(diag(last_U))) + n/2 * log(2 * pi))
   }
 
-  # Only used when using RBF
-  # May want to generalise in future.
+  # Only used when using RBF. May want to generalise in future.
   gradient <- function(log_params) {
     update_cache(log_params)
     if (is.null(last_U)) return(rep(Inf, 2 * L + 1))
@@ -80,7 +110,7 @@ find_gpr_hyperparameters_multiple <- function(
     for (ell in 1:L) {
       DK <- va_vec[[ell]] * last_K_list[[ell]]
       jacobian[[ell]] <- 0.5 * sum(M * DK)
-      jacobian[[L + ell]] <- 0.5 * sum(M * DK * D2_list[[ell]]) / ls_vec[[ell]]^2
+      jacobian[[L + ell]] <- 0.5 * sum(M * DK * D2[[ell]]) / ls_vec[[ell]]^2
     }
     jacobian[[2*L + 1]] <- 0.5 * lambda2 * sum(diag(M))
 
@@ -92,7 +122,8 @@ find_gpr_hyperparameters_multiple <- function(
   best <- NULL
   for (i in seq_len(runs)) {
     if (verbose) message(paste0("Hyperparameter search ", i, " of ", runs, "."))
-    init <- c(variance = log_yvar - log(L) * stats::runif(L, log(0.1), log(10)),
+    # Randomly sampled initial values, tailored to scale of data
+    init <- c(variance = log_yvar - log(L) + stats::runif(L, log(0.1), log(10)),
               length_scale = log(meds) + stats::runif(L, log(0.1), log(10)),
               lambda2 = log_yvar + stats::runif(1, -10, -2))
 
@@ -109,11 +140,15 @@ find_gpr_hyperparameters_multiple <- function(
     }
 
     if (!is.null(fit) && (is.null(best) || fit$value < best$value)) {
-      if (verbose && !is.null(best)) message(paste0("Current optimum improved from ",
-        round(best$value, 4), " to ",
-        round(fit$value,  4), "."))
-      if (verbose && is.null(best)) message(paste0("Optimum set at ",
-        round(fit$value,  4), "."))
+      if (verbose && !is.null(best)) {
+        message(paste0("Current optimum improved from ",
+                       round(best$value, 4), " to ",
+                       round(fit$value,  4), "."))
+      }
+      if (verbose && is.null(best)) {
+        message(paste0("Optimum set at ",
+                       round(fit$value,  4), "."))
+      }
       best <- fit
     }
   }
@@ -126,58 +161,5 @@ find_gpr_hyperparameters_multiple <- function(
     length_scale = exp(best$par[(L+1):(2*L)]),
     lambda2 = exp(best$par[2*L + 1]),
     nll = best$value
-  )
-}
-
-#' Estimate Gaussian Process Hyperparameters
-#'
-#' The hyperparameters are estimated by minimising the model's marginal
-#' negative log-likelihood using the BFGS algorithm.
-#'
-#' @noRd
-#'
-#' @param D2 Matrix with squared pairwise distances between the
-#'    training objects only.
-#' @param y_train Vector with outcomes for the training objects.
-#' @param centre Set to `TRUE` (default) when centring training outcomes
-#'    around their mean.
-#' @param use_gradient If `TRUE`, closed-form expressions for the RBF's
-#'    gradient are used. Else, the optimiser uses the finite-differences method.
-#'    If the kernel used is not the RBF, this value is currently reset to `FALSE`.
-#' @param kernel `rbf` for the Gaussian RBF kernel (default);
-#'    `matern05`, `matern15` or `matern25` for the
-#'    Matérn kernel with smoothness parameter 0.5, 1.5 or 2.5.
-#' @param param Additional kernel parameter (smoothness for Matérn, exponent for power exponential; ignored for RBF).
-#' @param runs Number of independent attempts to find a minimum.
-#' @param verbose If `TRUE`, progress is shown.
-#'
-#' @return A list containing the kernel used, the three estimated hyperparameters
-#'    (kernel variance, kernel length-scale, noise variance) as well
-#'    as the marginal negative log-likelihood achieved.
-#'
-#' @examples
-#' N1 <- 25
-#' x_train <- seq(-pi, pi, length.out = N1)
-#' y_train <- ifelse(x_train == 0, 2*pi, sin(2*pi*x_train) / x_train)
-#' D2_train <- outer(x_train, x_train, "-")^2
-#' find_gpr_hyperparameters(D2_train, y_train,
-#'   use_gradient = FALSE, runs = 20, verbose = FALSE)
-#' find_gpr_hyperparameters(D2_train, y_train,
-#'   use_gradient = TRUE, runs = 20, verbose = FALSE)
-find_gpr_hyperparameters <- function(
-    D2, y_train, centre = TRUE, use_gradient = FALSE,
-    kernel = "rbf", param = NA,
-    runs = 10, verbose = TRUE, maxit = 500
-) {
-  fit <- find_gpr_hyperparameters_multiple(
-    list(D2), y_train, centre = centre, use_gradient = use_gradient,
-    kernels = kernel, params = param, runs = runs, verbose = verbose,
-    maxit = maxit)
-  list(
-    kernel = kernel,
-    variance = fit$variance,
-    length_scale = fit$length_scale,
-    lambda2 = fit$lambda2,
-    nll = fit$nll
   )
 }

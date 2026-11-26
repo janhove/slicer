@@ -113,41 +113,26 @@ gpr_predict <- function(Kxx, Kxstar, y_train, centre = TRUE, lambda2 = 1e-6,
 #'    Else, the optimiser uses the finite-differences method.
 #'    Only used when RBF kernels are used.
 #' @param kernels A vector of kernels (`rbf`, `matern`, `powexp`).
-#' @param params A vector of kernel parameters (smoothness for Matérn; exponent for power exponential; ignored for RBF).
+#' @param params A vector of kernel parameters (smoothness for Matern; exponent for power exponential; ignored for RBF).
 #' @param runs Number of independent attempts to find a minimum when optimising the hyperparameters.
 #' @param verbose If `TRUE`, progress is shown on the console.
 #'
 #' @return A list containing the predictions for the test objects,
 #'     the root mean squared error (if the true test outcomes are provided),
 #'     the tuned hyperparameter values, and the negative log marginal likelihood (nll).
-#'
-#' @examples
-#' N1 <- 25
-#' N2 <- 10
-#' x_train1 <- runif(N1, -pi, pi)
-#' x_train2 <- runif(N1, 0, 1)
-#' x_test1  <- runif(N2, -pi, pi)
-#' x_test2  <- runif(N2, 0, 1)
-#' y_train <- x_train2 * plogis(x_train1) * cos(x_train1)
-#' y_test <- x_test2 * plogis(x_test1) * cos(x_test1)
-#' D2_1 <- outer(c(x_train1, x_test1), c(x_train1, x_test1), "-")^2
-#' D2_2 <- outer(c(x_train2, x_test2), c(x_train2, x_test2), "-")^2
-#' fit <- fit_gpr_multiple(list(D2_1, D2_2), seq_len(N1), N1 + seq_len(N2),
-#'   y_train, y_test, runs = 50, kernels = c("rbf", "matern"), params = c(NA, 1.5))
-#' plot(fit$test_predictions, y_test)
-#' fit$RMSE
-fit_gpr_multiple <- function(
+fit_gpr_one_core <- function(
     D2_list, training_idx, test_idx, y_train, y_test = NULL,
     centre = TRUE, use_gradient = TRUE, kernels = "rbf",
-    params = NA, runs = 10, verbose = TRUE)
+    params = NA, runs = 10, verbose = TRUE, maxit = 500)
   {
   select_entries <- function(M, idx) {
     M[idx, idx]
   }
   D2_train_list <- lapply(D2_list, select_entries, training_idx)
-  tuned_hyperparams <- find_gpr_hyperparameters_multiple(
+  tuned_hyperparams <- find_hyperparameters(
     D2_train_list, y_train, centre = centre, use_gradient = use_gradient,
-    runs = runs, verbose = verbose, kernels = kernels, params = params
+    runs = runs, verbose = verbose, kernels = kernels, params = params,
+    maxit = maxit
   )
   variance <- tuned_hyperparams$variance
   length_scale <- tuned_hyperparams$length_scale
@@ -165,7 +150,7 @@ fit_gpr_multiple <- function(
 
   list(
     kernels = kernels,
-    params = params,
+    params = tuned_hyperparams$params,
     test_predictions = predictions$test_predictions,
     test_variance = predictions$test_variance,
     RMSE = if (is.null(y_test)) NA else sqrt(mean((predictions$test_predictions - y_test)^2)),
@@ -192,10 +177,11 @@ fit_gpr_multiple <- function(
 #'                     Else, the optimiser uses the finite-differences method.
 #'                     Ignored when non-RBF kernels are used.
 #' @param kernels A vector with kernels (`"rbf", "powexp", "matern"`).
-#' @param params Kernel parameters (smoothness for Matérn; exponent for power exponential; ignored for RBF).
+#' @param params Kernel parameters (smoothness for Matern; exponent for power exponential; ignored for RBF).
 #' @param runs Number of independent attempts to find a minimum when optimising the hyperparameters.
 #' @param cores Number of cores used for parallel processing.
 #' @param verbose If `TRUE`, progress is shown on the console. Only works if `cores == 1L`.
+#' @param maxit Maximum number of iterations per optimisation run.
 #'
 #' @return A list containing the predictions for the test objects as well as
 #'     their variance, the root mean squared error
@@ -225,9 +211,9 @@ fit_gpr_multiple <- function(
 #'   y1 = fit$test_predictions + 2 * sqrt(diag(fit$test_variance)), lty = 2)
 #' fit
 #' # Multiple cores
-#' fit <- fit_gpr(list(D2_1, D2_2), seq_len(N1), N1 + seq_len(N2),
-#'   y_train, y_test, runs = 50, cores = 2)
-#' fit
+#' # fit <- fit_gpr(list(D2_1, D2_2), seq_len(N1), N1 + seq_len(N2),
+#' #  y_train, y_test, runs = 50, cores = 2)
+#' # fit
 #'
 #' # Single kernel
 #' N1 <- 40
@@ -237,24 +223,7 @@ fit_gpr_multiple <- function(
 #' y_train <- x_train * plogis(x_train) * cos(x_train) + rnorm(N1, sd = 0.5)
 #' y_test <- x_test * plogis(x_test) * cos(x_test)
 #' D2 <- outer(c(x_train, x_test), c(x_train, x_test), "-")^2
-#' fit <- fit_gpr(D2, seq_len(N1), N1 + seq_len(N2), y_train, y_test,
-#'   runs = 50L, cores = 2)
-#' curve(x * plogis(x) * cos(x), -pi, pi,
-#'   ylim = range(
-#'     c(y_train, fit$test_predictions + 2 * sqrt(diag(fit$test_variance)),
-#'                fit$test_predictions - 2 * sqrt(diag(fit$test_variance)))
-#'    )
-#'  )
-#' points(x_train, y_train, pch = 1)
-#' points(x_test, fit$test_predictions, pch = 16)
-#' segments(x0 = x_test,
-#'   y0 = fit$test_predictions - 2 * sqrt(diag(fit$test_variance)),
-#'   y1 = fit$test_predictions + 2 * sqrt(diag(fit$test_variance)))
-#' fit
-#' fit$RMSE
-#'
-#' fit <- fit_gpr(D2, seq_len(N1), N1 + seq_len(N2), y_train, y_test,
-#'   runs = 50L, cores = 2, kernel = "matern15")
+#' fit <- fit_gpr(D2, seq_len(N1), N1 + seq_len(N2), y_train, y_test, runs = 50L)
 #' curve(x * plogis(x) * cos(x), -pi, pi,
 #'   ylim = range(
 #'     c(y_train, fit$test_predictions + 2 * sqrt(diag(fit$test_variance)),
@@ -271,17 +240,39 @@ fit_gpr_multiple <- function(
 fit_gpr <- function(
     D2, training_idx, test_idx, y_train, y_test = NULL,
     centre = TRUE, use_gradient = TRUE, kernels = "rbf", params = NA,
-    runs = 10L, cores = 1L, verbose = TRUE)
+    runs = 10L, cores = 1L, verbose = TRUE, maxit = 500)
   {
+
+  # Input cleaning -------------------------------------------------------------
   if (!is.list(D2)) D2 <- list(D2)
+  L <- length(D2)
+
+  if (length(kernels) == 1L) kernels <- rep(kernels, L)
+  if (length(params) == 1L)  params  <- rep(params, L)
+
+  if (length(kernels) != L)  stop(paste0(length(kernels), " kernels specified; ", L, " needed."))
+  if (length(params) != L)   stop(paste0(length(params), " params specified; ", L, " needed."))
+
+  specify_params <- is.na(params) & kernels == "matern"
+  if (sum(specify_params) > 0) {
+    params[specify_params] <- 3/2
+    warning("Unspecified Matern smoothness parameters set to 3/2.")
+  }
+  specify_params <- is.na(params) & kernels == "powexp"
+  if (sum(specify_params) > 0) {
+    params[specify_params] <- 1
+    warning("Unspecified power exponents set to 1.")
+  }
+
+  # One core -------------------------------------------------------------------
   if (cores <= 1L) {
-    my_fit <- fit_gpr_multiple(D2, training_idx, test_idx, y_train,
+    my_fit <- fit_gpr_one_core(D2, training_idx, test_idx, y_train,
       y_test, centre = centre, use_gradient = use_gradient, runs = runs,
-      verbose = verbose, kernels = kernels, params = params)
+      verbose = verbose, kernels = kernels, params = params, maxit = maxit)
     return(my_fit)
   }
 
-  # Parallel processing
+  # Parallel processing --------------------------------------------------------
   available_cores <- parallel::detectCores()
   if (cores > available_cores - 1) {
     cores <- available_cores - 1
@@ -289,24 +280,34 @@ fit_gpr <- function(
   }
   runs_per_core <- ceiling(runs / cores)
   cl <- parallel::makeCluster(cores)
-  on.exit(parallel::stopCluster(cl))
+  on.exit(parallel::stopCluster(cl), add = TRUE)
+  # Make set.seed() also affect seeds in clusters.
+  parallel::clusterSetRNGStream(cl, sample.int(.Machine$integer.max, 1))
   parallel::clusterEvalQ(cl, library(slicer))
 
+  worker <- function(
+    i, D2, training_idx, test_idx, y_train, y_test, centre, use_gradient,
+    runs_per_core, kernels, params, maxit
+  ) {
+    tryCatch(
+      fit_gpr_one_core(D2, training_idx, test_idx, y_train, y_test,
+                       centre = centre, use_gradient = use_gradient,
+                       runs = runs_per_core, verbose = FALSE,
+                       kernels = kernels, params = params, maxit = maxit),
+      error = function(e) NULL
+    )
+  }
+  environment(worker) <- environment(fit_gpr)
+
   results <- parallel::parLapply(
-    cl, seq_len(cores),
-    function(i, D2, training_idx, test_idx, y_train, y_test,
-             centre, use_gradient, runs_per_core, kernels = kernels, params = params) {
-      fit_gpr_multiple(D2, training_idx, test_idx, y_train,
-                       y_test, centre = centre, use_gradient = use_gradient,
-                       runs = runs_per_core,
-                       verbose = FALSE, kernels = kernels,
-                       params = params)
-    },
+    cl, seq_len(cores), worker,
     D2 = D2, training_idx = training_idx, test_idx = test_idx,
     y_train = y_train, y_test = y_test,
-    centre = centre, use_gradient = use_gradient,
-    runs_per_core = runs_per_core, kernels = kernels
+    centre = centre, use_gradient = use_gradient, runs_per_core = runs_per_core,
+    kernels = kernels, params = params, maxit = maxit
   )
+  results <- Filter(Negate(is.null), results)
+  if (length(results) == 0L) stop("All optimisation runs failed on all cores.")
   best_idx <- which.min(sapply(results, `[[`, "nll"))
   results[[best_idx]]
 }
