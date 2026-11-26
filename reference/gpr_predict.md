@@ -36,7 +36,8 @@ gpr_predict(
 
 - centre:
 
-  If `TRUE`, the training outcomes are centred around their mean.
+  If `TRUE` (defaults), the training outcomes are centred around their
+  mean.
 
 - lambda2:
 

@@ -38,7 +38,7 @@ Please refer to the vignette for a brief tutorial.
 - [`kernel_sum()`](https://janhove.github.io/slicer/reference/kernel_sum.md)
   : Sum of Kernels
 - [`matern()`](https://janhove.github.io/slicer/reference/matern.md) :
-  Matérn Kernels
+  Matérn Kernel
 - [`matern_multiple()`](https://janhove.github.io/slicer/reference/matern_multiple.md)
   : Sum of Matérn Kernels
 - [`nlpd_gpr()`](https://janhove.github.io/slicer/reference/nlpd_gpr.md)
@@ -47,6 +47,10 @@ Please refer to the vignette for a brief tutorial.
 - [`nw_corner_distance()`](https://janhove.github.io/slicer/reference/nw_corner_distance.md)
   : One-Dimensional Wasserstein Distance Using North-West Corner
   Algorithm
+- [`powexp()`](https://janhove.github.io/slicer/reference/powexp.md) :
+  Power Exponential Kernel
+- [`powexp_multiple()`](https://janhove.github.io/slicer/reference/powexp_multiple.md)
+  : Sum of Power Exponential Kernels
 - [`rbf()`](https://janhove.github.io/slicer/reference/rbf.md) :
   Gaussian Radial Basis Function Kernel
 - [`rbf_multiple()`](https://janhove.github.io/slicer/reference/rbf_multiple.md)

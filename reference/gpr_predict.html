@@ -79,7 +79,8 @@ Each row corresponds to one test input.</p></dd>
 
 
 <dt id="arg-centre">centre<a class="anchor" aria-label="anchor" href="#arg-centre"></a></dt>
-<dd><p>If <code>TRUE</code>, the training outcomes are centred around their mean.</p></dd>
+<dd><p>If <code>TRUE</code> (defaults), the training outcomes are centred
+around their mean.</p></dd>
 
 
 <dt id="arg-lambda-">lambda2<a class="anchor" aria-label="anchor" href="#arg-lambda-"></a></dt>
@@ -97,8 +98,8 @@ matrix are returned.</p></dd>
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>If <code>Kxstarstar</code> is <code>NULL</code> (default), a vector with posterior mean
 predictions for the test inputs. Else, a list with a vector
-<code>test_predictions</code> with posterior mean predictions and a matrix <code>test_variance</code> with the posterior
-covariance for the test inputs.</p>
+<code>test_predictions</code> with posterior mean predictions and
+a matrix <code>test_variance</code> with the posterior covariance for the test inputs.</p>
     </div>
 
     <div class="section level2">

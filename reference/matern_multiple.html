@@ -45,7 +45,7 @@ their sum.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">matern_multiple</span><span class="op">(</span><span class="va">D_list</span>, <span class="va">length_scales</span>, <span class="va">variances</span>, <span class="va">taus</span>, squared <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">matern_multiple</span><span class="op">(</span><span class="va">D_list</span>, <span class="va">length_scales</span>, <span class="va">variances</span>, <span class="va">nus</span>, squared <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -64,9 +64,8 @@ their sum.</p>
 <dd><p>A vector of kernel variance parameters.</p></dd>
 
 
-<dt id="arg-taus">taus<a class="anchor" aria-label="anchor" href="#arg-taus"></a></dt>
+<dt id="arg-nus">nus<a class="anchor" aria-label="anchor" href="#arg-nus"></a></dt>
 <dd><p>A vector of smoothness parameters.
-Values need to be in 0.5, 1.5 and 2.5.
 If only a single value is provided, it will be used for all components.</p></dd>
 
 
@@ -91,11 +90,11 @@ contain raw distances.</p></dd>
 <span class="r-in"><span>            <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">3</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">M_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">M1</span>, <span class="va">M2</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">matern_multiple</span><span class="op">(</span><span class="va">M_list</span>, length_scales <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span>, variances <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">/</span><span class="fl">2</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  taus <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">2.5</span><span class="op">)</span>, squared <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          [,1]      [,2]      [,3]</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 2.500000 1.1500835 1.2823914</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] 1.150083 2.5000000 0.7145912</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [3,] 1.282391 0.7145912 2.5000000</span>
+<span class="r-in"><span>  nus <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">2.5</span><span class="op">)</span>, squared <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           [,1]      [,2]      [,3]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 2.5000000 0.6849951 0.8050890</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] 0.6849951 2.5000000 0.3057516</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [3,] 0.8050890 0.3057516 2.5000000</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

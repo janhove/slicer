@@ -6,7 +6,7 @@ computes their sum.
 ## Usage
 
 ``` r
-matern_multiple(D_list, length_scales, variances, taus, squared = TRUE)
+matern_multiple(D_list, length_scales, variances, nus, squared = TRUE)
 ```
 
 ## Arguments
@@ -23,11 +23,10 @@ matern_multiple(D_list, length_scales, variances, taus, squared = TRUE)
 
   A vector of kernel variance parameters.
 
-- taus:
+- nus:
 
-  A vector of smoothness parameters. Values need to be in 0.5, 1.5 and
-  2.5. If only a single value is provided, it will be used for all
-  components.
+  A vector of smoothness parameters. If only a single value is provided,
+  it will be used for all components.
 
 - squared:
 
@@ -50,9 +49,9 @@ M2 <- rbind(c(0, 1, 4),
             c(4, 3, 0))
 M_list <- list(M1, M2)
 matern_multiple(M_list, length_scales = c(1, 2), variances = c(2, 1/2),
-  taus = c(0.5, 2.5), squared = FALSE)
-#>          [,1]      [,2]      [,3]
-#> [1,] 2.500000 1.1500835 1.2823914
-#> [2,] 1.150083 2.5000000 0.7145912
-#> [3,] 1.282391 0.7145912 2.5000000
+  nus = c(0.5, 2.5), squared = FALSE)
+#>           [,1]      [,2]      [,3]
+#> [1,] 2.5000000 0.6849951 0.8050890
+#> [2,] 0.6849951 2.5000000 0.3057516
+#> [3,] 0.8050890 0.3057516 2.5000000
 ```

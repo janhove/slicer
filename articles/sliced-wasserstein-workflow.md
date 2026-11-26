@@ -47,7 +47,7 @@ angle of $`\omega = \pi/16`$ and once using one of $`\omega = 3\pi/8`$.
 
 set.seed(2026) # for reproducibility
 
-op <- par(no.readonly = TRUE)
+op <- par(no.readonly = TRUE, bty = "n")
 par(mfrow = c(1, 2))
 generate_data(angle = pi/16) |> 
   plot(xlab = "first dimension", ylab = "second dimension", asp = 1)
@@ -162,12 +162,14 @@ sw_fit <- fit_gpr(sw_distances,
   y_test = angles[N_train + seq_len(N_test)],
   verbose = TRUE)
 #> Hyperparameter search 1 of 10.
-#> Optimum set at -58.8148778.
+#> Optimum set at -58.815.
 #> Hyperparameter search 2 of 10.
+#> Current optimum improved from -58.815 to -58.8157.
 #> Hyperparameter search 3 of 10.
 #> Hyperparameter search 4 of 10.
+#> Current optimum improved from -58.8157 to -58.8172.
 #> Hyperparameter search 5 of 10.
-#> Current optimum improved from -58.8148778 to -58.8173233.
+#> Current optimum improved from -58.8172 to -58.8176.
 #> Hyperparameter search 6 of 10.
 #> Hyperparameter search 7 of 10.
 #> Hyperparameter search 8 of 10.
@@ -182,14 +184,15 @@ estimated hyperparameters.
 ``` r
 
 str(sw_fit)
-#> List of 8
+#> List of 9
 #>  $ kernels         : chr "rbf"
+#>  $ params          : logi NA
 #>  $ test_predictions: num [1:20] 0.241 0.7091 0.2402 0.5074 0.0604 ...
 #>  $ test_variance   : num [1:20, 1:20] 0.00134 NA NA NA NA ...
 #>  $ RMSE            : num 0.038
 #>  $ length_scale    : num 1.57
 #>  $ scaling_factor  : num 0.0758
-#>  $ noise_variance  : num 3.35e-07
+#>  $ noise_variance  : num 2.06e-07
 #>  $ nll             : num -58.8
 plot(angles[N_train + seq_len(N_test)], sw_fit$test_predictions,
      xlab = "true test outcomes", ylab = "predicted test outcomes", asp = 1)
@@ -204,10 +207,10 @@ predictions variances are reported (the main diagonal of
 ``` r
 
 diag(sw_fit$test_variance)
-#>  [1] 0.0013365855 0.0021745879 0.0009410476 0.0024841724 0.0009932429
-#>  [6] 0.0012133130 0.0026980077 0.0017290988 0.0009256886 0.0010941631
-#> [11] 0.0014113185 0.0014526917 0.0008645438 0.0009060660 0.0030613958
-#> [16] 0.0008919528 0.0017044590 0.0039856770 0.0025413126 0.0023767505
+#>  [1] 0.0013366046 0.0021747134 0.0009410526 0.0024842650 0.0009932470
+#>  [6] 0.0012133368 0.0026981347 0.0017291192 0.0009257147 0.0010941824
+#> [11] 0.0014113696 0.0014526947 0.0008645598 0.0009060875 0.0030615161
+#> [16] 0.0008919558 0.0017045107 0.0039858230 0.0025413739 0.0023768660
 ```
 
 Had we also computed the distances between the test inputs,
@@ -229,26 +232,25 @@ marginal_fit <- fit_gpr(marginal_distances,
   y_test = angles[N_train + seq_len(N_test)],
   verbose = TRUE)
 #> Hyperparameter search 1 of 10.
-#> Optimum set at -48.3151392.
+#> Optimum set at -61.5134.
 #> Hyperparameter search 2 of 10.
-#> Current optimum improved from -48.3151392 to -61.5134707.
 #> Hyperparameter search 3 of 10.
 #> Hyperparameter search 4 of 10.
 #> Hyperparameter search 5 of 10.
 #> Hyperparameter search 6 of 10.
 #> Hyperparameter search 7 of 10.
 #> Hyperparameter search 8 of 10.
-#> Current optimum improved from -61.5134707 to -61.5134707.
 #> Hyperparameter search 9 of 10.
 #> Hyperparameter search 10 of 10.
 str(marginal_fit)
-#> List of 8
+#> List of 9
 #>  $ kernels         : chr [1:2] "rbf" "rbf"
-#>  $ test_predictions: num [1:20] 0.2395 0.6678 0.2429 0.5619 0.0919 ...
+#>  $ params          : logi [1:2] NA NA
+#>  $ test_predictions: num [1:20] 0.2394 0.6678 0.2428 0.5619 0.0918 ...
 #>  $ test_variance   : num [1:20, 1:20] 0.000587 NA NA NA NA ...
 #>  $ RMSE            : num 0.0522
-#>  $ length_scale    : num [1:2] 3.9 6.09
-#>  $ scaling_factor  : num [1:2] 0.347 0.146
+#>  $ length_scale    : num [1:2] 3.89 6.04
+#>  $ scaling_factor  : num [1:2] 0.345 0.144
 #>  $ noise_variance  : num 0.000448
 #>  $ nll             : num -61.5
 plot(angles[N_train + seq_len(N_test)], marginal_fit$test_predictions,
@@ -269,27 +271,27 @@ total_fit <- fit_gpr(list(sw_distances, marginal_distances[[1]], marginal_distan
   y_test = angles[N_train + seq_len(N_test)],
   verbose = TRUE)
 #> Hyperparameter search 1 of 10.
-#> Optimum set at -58.8320454.
+#> Optimum set at -63.0742.
 #> Hyperparameter search 2 of 10.
-#> Current optimum improved from -58.8320454 to -61.5129334.
 #> Hyperparameter search 3 of 10.
-#> Current optimum improved from -61.5129334 to -63.0802534.
 #> Hyperparameter search 4 of 10.
 #> Hyperparameter search 5 of 10.
+#> Current optimum improved from -63.0742 to -63.0791.
 #> Hyperparameter search 6 of 10.
 #> Hyperparameter search 7 of 10.
 #> Hyperparameter search 8 of 10.
 #> Hyperparameter search 9 of 10.
 #> Hyperparameter search 10 of 10.
 str(total_fit)
-#> List of 8
+#> List of 9
 #>  $ kernels         : chr [1:3] "rbf" "rbf" "rbf"
-#>  $ test_predictions: num [1:20] 0.247 0.69 0.247 0.549 0.085 ...
-#>  $ test_variance   : num [1:20, 1:20] 0.00081 NA NA NA NA ...
-#>  $ RMSE            : num 0.047
-#>  $ length_scale    : num [1:3] 0.421 3.836 5.488
-#>  $ scaling_factor  : num [1:3] 0.00117 0.24748 0.12484
-#>  $ noise_variance  : num 3.32e-08
+#>  $ params          : logi [1:3] NA NA NA
+#>  $ test_predictions: num [1:20] 0.2474 0.6891 0.2471 0.5495 0.0852 ...
+#>  $ test_variance   : num [1:20, 1:20] 0.000804 NA NA NA NA ...
+#>  $ RMSE            : num 0.0471
+#>  $ length_scale    : num [1:3] 0.419 3.834 5.509
+#>  $ scaling_factor  : num [1:3] 0.00114 0.24911 0.126
+#>  $ noise_variance  : num 1.68e-07
 #>  $ nll             : num -63.1
 plot(angles[N_train + seq_len(N_test)], total_fit$test_predictions,
      xlab = "true test outcomes", ylab = "predicted test outcomes", asp = 1)
@@ -304,49 +306,104 @@ Parallel processing can be enabled using the `cores` parameter:
 total_fit <- fit_gpr(list(sw_distances, marginal_distances[[1]], marginal_distances[[2]]),
   training_idx = seq_len(N_train),
   test_idx = N_train + seq_len(N_test),
-  y_train = angles[seq_len(N_train)], 
+  y_train = angles[seq_len(N_train)],
   y_test = angles[N_train + seq_len(N_test)],
   runs = 50L, cores = 2L)
 str(total_fit)
-#> List of 8
+#> List of 9
 #>  $ kernels         : chr [1:3] "rbf" "rbf" "rbf"
-#>  $ test_predictions: num [1:20] 0.247 0.69 0.247 0.549 0.085 ...
+#>  $ params          : logi [1:3] NA NA NA
+#>  $ test_predictions: num [1:20] 0.2474 0.6896 0.2471 0.5491 0.0849 ...
 #>  $ test_variance   : num [1:20, 1:20] 0.00081 NA NA NA NA ...
 #>  $ RMSE            : num 0.047
-#>  $ length_scale    : num [1:3] 0.421 3.834 5.483
-#>  $ scaling_factor  : num [1:3] 0.00117 0.2472 0.12462
-#>  $ noise_variance  : num 1.99e-08
+#>  $ length_scale    : num [1:3] 0.421 3.843 5.515
+#>  $ scaling_factor  : num [1:3] 0.00117 0.24792 0.12613
+#>  $ noise_variance  : num 3.12e-07
 #>  $ nll             : num -63.1
 ```
 
 Instead of the Gaussian RBF kernel, the Matérn kernels with smoothness
-parameter $`\nu = 0.5, 1.5, 2.5`$ can be used. We can use a different
-kernel for each distance matrix; the total kernel used is then the
-conical combination of these kernels. For instance, the following fit
-uses the Matérn kernel with $`\nu = 2.5`$ for the sliced Wasserstein
-distances, the Matérn kernel with $`\nu = 0.5`$ for the Wasserstein
-distances along the first axis, and the Matérn kernel with $`\nu = 1.5`$
-for the Wasserstein distances alogn the second axis.
+parameter $`\nu`$ can be used. We can use a different kernel for each
+distance matrix; the total kernel used is then the conical combination
+of these kernels. For instance, the following fit uses the Matérn kernel
+with $`\nu = 2.5`$ for the sliced Wasserstein distances, the Matérn
+kernel with $`\nu = 0.5`$ for the Wasserstein distances along the first
+axis, and the Matérn kernel with $`\nu = 1.5`$ for the Wasserstein
+distances alogn the second axis.
 
 ``` r
 
 total_fit_matern <- fit_gpr(list(sw_distances, marginal_distances[[1]], marginal_distances[[2]]),
   training_idx = seq_len(N_train),
   test_idx = N_train + seq_len(N_test),
-  y_train = angles[seq_len(N_train)], 
+  y_train = angles[seq_len(N_train)],
   y_test = angles[N_train + seq_len(N_test)],
-  kernels = c("matern25", "matern05", "matern15"),
+  kernels = c("matern", "matern", "matern"),
+  params = c(2.5, 0.5, 1.5),
   runs = 50L, cores = 2L)
 str(total_fit_matern)
-#> List of 8
-#>  $ kernels         : chr [1:3] "matern25" "matern05" "matern15"
+#> List of 9
+#>  $ kernels         : chr [1:3] "matern" "matern" "matern"
+#>  $ params          : num [1:3] 2.5 0.5 1.5
 #>  $ test_predictions: num [1:20] 0.242 0.709 0.24 0.507 0.061 ...
 #>  $ test_variance   : num [1:20, 1:20] 0.00133 NA NA NA NA ...
 #>  $ RMSE            : num 0.0377
-#>  $ length_scale    : num [1:3] 2.71 1.69e+06 3.02e-02
-#>  $ scaling_factor  : num [1:3] 1.34e-01 1.53e-06 8.11e-13
-#>  $ noise_variance  : num 2.38e-09
+#>  $ length_scale    : num [1:3] 2.71 1.99e+03 6.38e+05
+#>  $ scaling_factor  : num [1:3] 1.34e-01 1.55e-06 3.89e-06
+#>  $ noise_variance  : num 5.6e-09
 #>  $ nll             : num -58.6
+```
+
+Power exponential (`"powexp"`) kernels are available, too. They take an
+exponent $`\kappa \in (0, 2]`$ as their parameter; here,
+$`\kappa_1 = 1.2, \kappa_2 = 1, \kappa_3 = 0.8`$:
+
+``` r
+
+total_fit_powexp <- fit_gpr(list(sw_distances, marginal_distances[[1]], marginal_distances[[2]]),
+  training_idx = seq_len(N_train),
+  test_idx = N_train + seq_len(N_test),
+  y_train = angles[seq_len(N_train)],
+  y_test = angles[N_train + seq_len(N_test)],
+  kernels = c("powexp", "powexp", "powexp"),
+  params = c(1.2, 1, 0.8),
+  runs = 50L, cores = 2L)
+str(total_fit_powexp)
+#> List of 9
+#>  $ kernels         : chr [1:3] "powexp" "powexp" "powexp"
+#>  $ params          : num [1:3] 1.2 1 0.8
+#>  $ test_predictions: num [1:20] 0.2678 0.6818 0.2302 0.5324 0.0807 ...
+#>  $ test_variance   : num [1:20, 1:20] 0.00276 NA NA NA NA ...
+#>  $ RMSE            : num 0.055
+#>  $ length_scale    : num [1:3] 11.6 21.3 430.7
+#>  $ scaling_factor  : num [1:3] 6.70e-02 1.23e-01 2.47e-06
+#>  $ noise_variance  : num 7.72e-09
+#>  $ nll             : num -47.9
+```
+
+Different kernels can be applied to different distances matrices:
+
+``` r
+
+total_fit_mixed <- fit_gpr(list(sw_distances, marginal_distances[[1]], marginal_distances[[2]]),
+  training_idx = seq_len(N_train),
+  test_idx = N_train + seq_len(N_test),
+  y_train = angles[seq_len(N_train)],
+  y_test = angles[N_train + seq_len(N_test)],
+  kernels = c("matern", "powexp", "rbf"),
+  params = c(2.8, 0.9, NA),
+  runs = 50L, cores = 2L)
+str(total_fit_mixed)
+#> List of 9
+#>  $ kernels         : chr [1:3] "matern" "powexp" "rbf"
+#>  $ params          : num [1:3] 2.8 0.9 NA
+#>  $ test_predictions: num [1:20] 0.235 0.7046 0.2401 0.5036 0.0611 ...
+#>  $ test_variance   : num [1:20, 1:20] 0.00135 NA NA NA NA ...
+#>  $ RMSE            : num 0.0374
+#>  $ length_scale    : num [1:3] 2.41 6057.61 3.41
+#>  $ scaling_factor  : num [1:3] 1.06e-01 2.16e-07 2.27e-02
+#>  $ noise_variance  : num 1.03e-07
+#>  $ nll             : num -58.7
 ```
 
 Finally, a GPR’s **negative log predictive density** (NLPD) for some
@@ -354,10 +411,10 @@ test data can be obtained like so:
 
 ``` r
 
-nlpd_gpr(total_fit_matern, angles[N_train + seq_len(N_test)])
-#> Warning in nlpd_gpr(total_fit_matern, angles[N_train + seq_len(N_test)]): The fit's test variance contains NAs, likely because the distances among the test inputs weren't provided.
+nlpd_gpr(total_fit_mixed, angles[N_train + seq_len(N_test)])
+#> Warning in nlpd_gpr(total_fit_mixed, angles[N_train + seq_len(N_test)]): The fit's test variance contains NAs, likely because the distances among the test inputs weren't provided.
 #> Replacing NAs by 0.
-#> [1] -1.955071
+#> [1] -1.947789
 #> attr(,"jitter_used")
 #> [1] 0
 ```

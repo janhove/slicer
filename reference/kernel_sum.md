@@ -6,14 +6,14 @@ their sum.
 ## Usage
 
 ``` r
-kernel_sum(D2_list, length_scales, variances, kernels)
+kernel_sum(D_list, length_scales, variances, kernels, params, squared = TRUE)
 ```
 
 ## Arguments
 
-- D2_list:
+- D_list:
 
-  A list of matrices with squared pairwise distances.
+  A list of matrices with pairwise (possibly squared) distances.
 
 - length_scales:
 
@@ -25,7 +25,18 @@ kernel_sum(D2_list, length_scales, variances, kernels)
 
 - kernels:
 
-  A vector of kernels (`rbf`, `matern05`, `matern15`, `matern25`).
+  A vector of kernels (`rbf`, `matern`, `powexp`).
+
+- params:
+
+  A vector of additional kernel parameters (smoothness parameter for
+  Matérn, exponent for power exponential; ignored for RBF).
+
+- squared:
+
+  If `TRUE` (default), each distance matrix is assumed to contain
+  squared distances. If `FALSE`, each distance matrix is assumed to
+  contain raw distances.
 
 ## Value
 
@@ -40,11 +51,11 @@ M1 <- rbind(c(0, 2, 1),
 M2 <- rbind(c(0, 1, 4),
             c(1, 0, 3),
             c(4, 3, 0))
-M_list <- list(M1^2, M2^2)
-kernel_sum(M_list, length_scales = c(1, 2), variances = c(2, 1/2),
-  kernels = c("rbf", "matern15"))
-#>           [,1]      [,2]      [,3]
-#> [1,] 2.5000000 0.6631144 1.2829270
-#> [2,] 0.6631144 2.5000000 0.2217522
-#> [3,] 1.2829270 0.2217522 2.5000000
+M3 <- rbind(c(0, 4, 8),
+            c(4, 0, 1),
+            c(8, 1, 0))
+M_list <- list(M1^2, M2^2, M3^2)
+K_sum <- kernel_sum(M_list, length_scales = c(1, 2, 0.5),
+                    variances = c(2, 1/2, 0.1),
+                    kernels = c("powexp", "matern", "rbf"), params = c(1, 2.3, NA))
 ```
