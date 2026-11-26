@@ -4,18 +4,18 @@
 # slicer: Sliced Wasserstein Distances for Regression
 
 <!-- badges: start -->
+
 <!-- badges: end -->
 
 `slicer` provides functions for computing sliced Wasserstein distances
 as well as one-dimensional Wasserstein distances between empirical
-distributions represented as matrices. These distances can be fed to a
-Gaussian process regression model, which currently accepts the Gaussian
-radial basis function kernel as well as the Matérn kernels with
-smoothness parameters $\nu = 0.5, 1.5, 2.5$.
+distributions represented as matrices. These distances can be converted
+into a kernel (Gaussian radial basis function, Matérn and power
+exponential) and then fed to a Gaussian process regression model.
 
 ## Installation
 
-You can install the development version of slicer from
+You can install the development version of `slicer` from
 [GitHub](https://github.com/) with:
 
 ``` r
@@ -25,4 +25,6 @@ pak::pak("janhove/slicer")
 
 ## Use
 
-Please refer to the vignette for a brief tutorial.
+Please refer to the vignette for a brief tutorial on how to compute
+(sliced) Wasserstein distances and use them in a Gaussian process
+regression workflow.
