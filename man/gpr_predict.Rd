@@ -21,7 +21,8 @@ Each row corresponds to one test input.}
 
 \item{y_train}{Vector with training outcomes.}
 
-\item{centre}{If \code{TRUE}, the training outcomes are centred around their mean.}
+\item{centre}{If \code{TRUE} (defaults), the training outcomes are centred
+around their mean.}
 
 \item{lambda2}{Kernel noise variance.}
 
@@ -33,8 +34,8 @@ matrix are returned.}
 \value{
 If \code{Kxstarstar} is \code{NULL} (default), a vector with posterior mean
 predictions for the test inputs. Else, a list with a vector
-\code{test_predictions} with posterior mean predictions and a matrix \code{test_variance} with the posterior
-covariance for the test inputs.
+\code{test_predictions} with posterior mean predictions and
+a matrix \code{test_variance} with the posterior covariance for the test inputs.
 }
 \description{
 Computes posterior mean predictions from a Gaussian process regression model

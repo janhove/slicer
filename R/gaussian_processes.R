@@ -211,9 +211,9 @@ fit_gpr_one_core <- function(
 #'   y1 = fit$test_predictions + 2 * sqrt(diag(fit$test_variance)), lty = 2)
 #' fit
 #' # Multiple cores
-#' # fit <- fit_gpr(list(D2_1, D2_2), seq_len(N1), N1 + seq_len(N2),
-#' #  y_train, y_test, runs = 50, cores = 2)
-#' # fit
+#' fit <- fit_gpr(list(D2_1, D2_2), seq_len(N1), N1 + seq_len(N2),
+#'  y_train, y_test, runs = 50, cores = 2L)
+#' fit
 #'
 #' # Single kernel
 #' N1 <- 40

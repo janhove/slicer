@@ -13,9 +13,11 @@ fit_gpr(
   centre = TRUE,
   use_gradient = TRUE,
   kernels = "rbf",
+  params = NA,
   runs = 10L,
   cores = 1L,
-  verbose = TRUE
+  verbose = TRUE,
+  maxit = 500
 )
 }
 \arguments{
@@ -35,13 +37,17 @@ fit_gpr(
 Else, the optimiser uses the finite-differences method.
 Ignored when non-RBF kernels are used.}
 
-\item{kernels}{A vector with kernels (\verb{"rbf", "matern05", "matern15", "matern25"}).}
+\item{kernels}{A vector with kernels (\verb{"rbf", "powexp", "matern"}).}
+
+\item{params}{Kernel parameters (smoothness for Matern; exponent for power exponential; ignored for RBF).}
 
 \item{runs}{Number of independent attempts to find a minimum when optimising the hyperparameters.}
 
 \item{cores}{Number of cores used for parallel processing.}
 
 \item{verbose}{If \code{TRUE}, progress is shown on the console. Only works if \code{cores == 1L}.}
+
+\item{maxit}{Maximum number of iterations per optimisation run.}
 }
 \value{
 A list containing the predictions for the test objects as well as
@@ -77,7 +83,7 @@ segments(x0 = y_test,
 fit
 # Multiple cores
 fit <- fit_gpr(list(D2_1, D2_2), seq_len(N1), N1 + seq_len(N2),
-  y_train, y_test, runs = 50, cores = 2)
+ y_train, y_test, runs = 50, cores = 2L)
 fit
 
 # Single kernel
@@ -88,24 +94,7 @@ x_test  <- runif(N2, -pi, pi)
 y_train <- x_train * plogis(x_train) * cos(x_train) + rnorm(N1, sd = 0.5)
 y_test <- x_test * plogis(x_test) * cos(x_test)
 D2 <- outer(c(x_train, x_test), c(x_train, x_test), "-")^2
-fit <- fit_gpr(D2, seq_len(N1), N1 + seq_len(N2), y_train, y_test,
-  runs = 50L, cores = 2)
-curve(x * plogis(x) * cos(x), -pi, pi,
-  ylim = range(
-    c(y_train, fit$test_predictions + 2 * sqrt(diag(fit$test_variance)),
-               fit$test_predictions - 2 * sqrt(diag(fit$test_variance)))
-   )
- )
-points(x_train, y_train, pch = 1)
-points(x_test, fit$test_predictions, pch = 16)
-segments(x0 = x_test,
-  y0 = fit$test_predictions - 2 * sqrt(diag(fit$test_variance)),
-  y1 = fit$test_predictions + 2 * sqrt(diag(fit$test_variance)))
-fit
-fit$RMSE
-
-fit <- fit_gpr(D2, seq_len(N1), N1 + seq_len(N2), y_train, y_test,
-  runs = 50L, cores = 2, kernel = "matern15")
+fit <- fit_gpr(D2, seq_len(N1), N1 + seq_len(N2), y_train, y_test, runs = 50L)
 curve(x * plogis(x) * cos(x), -pi, pi,
   ylim = range(
     c(y_train, fit$test_predictions + 2 * sqrt(diag(fit$test_variance)),

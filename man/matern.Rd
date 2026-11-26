@@ -2,9 +2,9 @@
 % Please edit documentation in R/kernels.R
 \name{matern}
 \alias{matern}
-\title{Matérn Kernels}
+\title{Matérn Kernel}
 \usage{
-matern(D, length_scale = 1, variance = 1, tau = 1.5, squared = TRUE)
+matern(D, length_scale = 1, variance = 1, nu = 1.5, squared = TRUE)
 }
 \arguments{
 \item{D}{Matrix with pairwise (possibly squared) distances.}
@@ -13,7 +13,7 @@ matern(D, length_scale = 1, variance = 1, tau = 1.5, squared = TRUE)
 
 \item{variance}{Kernel variance parameter.}
 
-\item{tau}{Smoothness parameter. needs to be 0.5, 1.5 (default) or 2.5.}
+\item{nu}{Smoothness parameter. Defaults to 1.5.}
 
 \item{squared}{If \code{TRUE} (default), \code{D} is assumed to contain squared
 distances. Set to \code{FALSE} if this is not the case.}
@@ -22,14 +22,13 @@ distances. Set to \code{FALSE} if this is not the case.}
 A kernel matrix with the same dimensions as \code{D}.
 }
 \description{
-Builds a Matérn kernel (with smoothness parameter 0.5, 1.5 or 2.5) from a
-distance matrix.
+Builds a Matérn kernel from a distance matrix.
 }
 \examples{
 M <- rbind(c(0, 2, 1),
            c(2, 0, 2.5),
            c(1, 2.5, 0))
-matern(M, tau = 0.5, squared = FALSE)
-matern(M, tau = 1.5, squared = FALSE)
-matern(M, tau = 2.5, squared = FALSE)
+matern(M, nu = 0.5, squared = FALSE)
+matern(M, nu = 1.5, squared = FALSE)
+matern(M, nu = 2.5, squared = FALSE)
 }

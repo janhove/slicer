@@ -62,7 +62,7 @@ one of $\omega = 3\pi/8$.
 #| fig.width = 9
 set.seed(2026) # for reproducibility
 
-op <- par(no.readonly = TRUE)
+op <- par(no.readonly = TRUE, bty = "n")
 par(mfrow = c(1, 2))
 generate_data(angle = pi/16) |> 
   plot(xlab = "first dimension", ylab = "second dimension", asp = 1)
@@ -217,14 +217,14 @@ Parallel processing can be enabled using the `cores` parameter:
 total_fit <- fit_gpr(list(sw_distances, marginal_distances[[1]], marginal_distances[[2]]),
   training_idx = seq_len(N_train),
   test_idx = N_train + seq_len(N_test),
-  y_train = angles[seq_len(N_train)], 
+  y_train = angles[seq_len(N_train)],
   y_test = angles[N_train + seq_len(N_test)],
   runs = 50L, cores = 2L)
 str(total_fit)
 ```
 
 Instead of the Gaussian RBF kernel, the Matérn kernels with
-smoothness parameter $\nu = 0.5, 1.5, 2.5$ can be used.
+smoothness parameter $\nu$ can be used.
 We can use a different kernel for each distance matrix;
 the total kernel used is then the conical combination of these kernels.
 For instance, the following fit uses the Matérn kernel with $\nu = 2.5$
@@ -237,17 +237,50 @@ distances alogn the second axis.
 total_fit_matern <- fit_gpr(list(sw_distances, marginal_distances[[1]], marginal_distances[[2]]),
   training_idx = seq_len(N_train),
   test_idx = N_train + seq_len(N_test),
-  y_train = angles[seq_len(N_train)], 
+  y_train = angles[seq_len(N_train)],
   y_test = angles[N_train + seq_len(N_test)],
-  kernels = c("matern25", "matern05", "matern15"),
+  kernels = c("matern", "matern", "matern"),
+  params = c(2.5, 0.5, 1.5),
   runs = 50L, cores = 2L)
 str(total_fit_matern)
 ```
 
+Power exponential (`"powexp"`) kernels are available, too.
+They take an exponent $\kappa \in (0, 2]$ as their parameter;
+here, $\kappa_1 = 1.2, \kappa_2 = 1, \kappa_3 = 0.8$:
+
+```{r}
+total_fit_powexp <- fit_gpr(list(sw_distances, marginal_distances[[1]], marginal_distances[[2]]),
+  training_idx = seq_len(N_train),
+  test_idx = N_train + seq_len(N_test),
+  y_train = angles[seq_len(N_train)],
+  y_test = angles[N_train + seq_len(N_test)],
+  kernels = c("powexp", "powexp", "powexp"),
+  params = c(1.2, 1, 0.8),
+  runs = 50L, cores = 2L)
+str(total_fit_powexp)
+```
+
+Different kernels can be applied to different distances matrices:
+
+```{r}
+total_fit_mixed <- fit_gpr(list(sw_distances, marginal_distances[[1]], marginal_distances[[2]]),
+  training_idx = seq_len(N_train),
+  test_idx = N_train + seq_len(N_test),
+  y_train = angles[seq_len(N_train)],
+  y_test = angles[N_train + seq_len(N_test)],
+  kernels = c("matern", "powexp", "rbf"),
+  params = c(2.8, 0.9, NA),
+  runs = 50L, cores = 2L)
+str(total_fit_mixed)
+```
+
+
+
 Finally, a GPR's **negative log predictive density** (NLPD) for some test data
 can be obtained like so:
 ```{r}
-nlpd_gpr(total_fit_matern, angles[N_train + seq_len(N_test)])
+nlpd_gpr(total_fit_mixed, angles[N_train + seq_len(N_test)])
 ```
 
 The warning message occurs because we didn't compute the distances among the

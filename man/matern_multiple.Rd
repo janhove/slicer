@@ -4,7 +4,7 @@
 \alias{matern_multiple}
 \title{Sum of Matérn Kernels}
 \usage{
-matern_multiple(D_list, length_scales, variances, taus, squared = TRUE)
+matern_multiple(D_list, length_scales, variances, nus, squared = TRUE)
 }
 \arguments{
 \item{D_list}{A list of matrices with pairwise (possibly squared) distances.}
@@ -13,8 +13,7 @@ matern_multiple(D_list, length_scales, variances, taus, squared = TRUE)
 
 \item{variances}{A vector of kernel variance parameters.}
 
-\item{taus}{A vector of smoothness parameters.
-Values need to be in 0.5, 1.5 and 2.5.
+\item{nus}{A vector of smoothness parameters.
 If only a single value is provided, it will be used for all components.}
 
 \item{squared}{If \code{TRUE} (default), each distance matrix is assumed to
@@ -37,5 +36,5 @@ M2 <- rbind(c(0, 1, 4),
             c(4, 3, 0))
 M_list <- list(M1, M2)
 matern_multiple(M_list, length_scales = c(1, 2), variances = c(2, 1/2),
-  taus = c(0.5, 2.5), squared = FALSE)
+  nus = c(0.5, 2.5), squared = FALSE)
 }

@@ -15,8 +15,8 @@ generate_directions(L, d)
 An \code{L} by \code{d} matrix, each row of which contains a unit vector.
 }
 \description{
-Obtain \code{L} random vectors on the unit sphere in \code{d}-dimensional
-Euclidean space.
+Obtain \code{L} vectors sampled uniformly at random from the unit sphere
+in \code{d}-dimensional Euclidean space.
 }
 \examples{
 generate_directions(10, 4)
