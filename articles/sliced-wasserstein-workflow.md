@@ -271,12 +271,12 @@ total_fit <- fit_gpr(list(sw_distances, marginal_distances[[1]], marginal_distan
   y_test = angles[N_train + seq_len(N_test)],
   verbose = TRUE)
 #> Hyperparameter search 1 of 10.
-#> Optimum set at -63.0742.
+#> Optimum set at -63.0567.
 #> Hyperparameter search 2 of 10.
 #> Hyperparameter search 3 of 10.
 #> Hyperparameter search 4 of 10.
 #> Hyperparameter search 5 of 10.
-#> Current optimum improved from -63.0742 to -63.0791.
+#> Current optimum improved from -63.0567 to -63.0791.
 #> Hyperparameter search 6 of 10.
 #> Hyperparameter search 7 of 10.
 #> Hyperparameter search 8 of 10.
@@ -313,12 +313,12 @@ str(total_fit)
 #> List of 9
 #>  $ kernels         : chr [1:3] "rbf" "rbf" "rbf"
 #>  $ params          : logi [1:3] NA NA NA
-#>  $ test_predictions: num [1:20] 0.2474 0.6896 0.2471 0.5491 0.0849 ...
-#>  $ test_variance   : num [1:20, 1:20] 0.00081 NA NA NA NA ...
+#>  $ test_predictions: num [1:20] 0.247 0.689 0.247 0.549 0.085 ...
+#>  $ test_variance   : num [1:20, 1:20] 0.000815 NA NA NA NA ...
 #>  $ RMSE            : num 0.047
-#>  $ length_scale    : num [1:3] 0.421 3.843 5.515
-#>  $ scaling_factor  : num [1:3] 0.00117 0.24792 0.12613
-#>  $ noise_variance  : num 3.12e-07
+#>  $ length_scale    : num [1:3] 0.416 3.84 5.477
+#>  $ scaling_factor  : num [1:3] 0.00116 0.24737 0.12468
+#>  $ noise_variance  : num 1.49e-07
 #>  $ nll             : num -63.1
 ```
 
@@ -400,7 +400,7 @@ str(total_fit_mixed)
 #>  $ test_predictions: num [1:20] 0.235 0.7046 0.2401 0.5036 0.0611 ...
 #>  $ test_variance   : num [1:20, 1:20] 0.00135 NA NA NA NA ...
 #>  $ RMSE            : num 0.0374
-#>  $ length_scale    : num [1:3] 2.41 6057.61 3.41
+#>  $ length_scale    : num [1:3] 2.41 6057.4 3.41
 #>  $ scaling_factor  : num [1:3] 1.06e-01 2.16e-07 2.27e-02
 #>  $ noise_variance  : num 1.03e-07
 #>  $ nll             : num -58.7

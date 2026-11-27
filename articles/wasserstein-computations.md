@@ -1,0 +1,204 @@
+# How to compute Wasserstein and sliced Wasserstein distances
+
+## Goal
+
+This vignette explains how you can use `slicer` to compute Wasserstein
+distances between univariate empirical distributions as well as sliced
+Wasserstein distances between multivariate empirical distributions.
+
+## Wasserstein distances between univariate empirical distributions
+
+Let’s first load the `slicer` package and set a random seed.
+
+``` r
+
+library(slicer)
+set.seed(20261127)
+```
+
+Given two empirical distributions on $`\mathbb{R}`$,
+
+``` math
+P = \frac{1}{m}\sum_{i=1}^m \delta_{x_i}
+```
+and
+
+``` math
+Q = \frac{1}{n}\sum_{j=1}^n \delta_{y_j},
+```
+
+we want to compute the Wasserstein distance of order
+$`p \in [1, \infty)`$. This is defined as
+
+``` math
+\mathbf{W}_p(P, Q) := \min_{\substack{X \sim P \\ Y \sim Q}} \left(\mathbb{E}|X - Y|^p\right)^{1/p}.
+```
+
+The distributions $`P`$ and $`Q`$ are represented as the vectors (or
+matrices) $`x = (x_1, \dots, x_m) \in \mathbb{R}^{m \times 1}`$ and
+$`y = (y_1, \dots, y_n) \in \mathbb{R}^{n \times 1}`$, respectively. For
+instance,
+
+``` r
+
+P <- c(rnorm(20, 14, 3), rnorm(8, 1, 8))
+Q <- rcauchy(14, location = 9, scale = 4)
+```
+
+The **north-west corner** algorithm is used to compute exact Wasserstein
+distances of order $`p`$. The function
+[`nw_corner_distance()`](https://janhove.github.io/slicer/reference/nw_corner_distance.md)
+runs it.
+
+``` r
+
+nw_corner_distance(P, Q, p = 2)
+#> [1] 12.35423
+nw_corner_distance(P, Q, p = 1)
+#> [1] 7.530863
+```
+
+This algorithm is essentially a sorting operation with some bells and
+whistles. When working with large presorted vectors, you can set the
+parameter value for `presorted` to `TRUE` for some speed-up.
+
+Typically, we will have several empirical distributions
+$`P_1, \dots, P_N`$. The function
+[`compute_all_distances()`](https://janhove.github.io/slicer/reference/compute_all_distances.md)
+takes a list of empirical distributions represented as vectors (or
+matrices). If we don’t specify anything to the contrary, it will assume
+that the input distributions are all univariate. By default, it outputs
+the pairwise $`p`$-Wasserstein distances *raised to the $`p`$-th_power*.
+(The reason is that, in practice, we will often ) Also by default,
+$`p = 2`$ is used.
+
+``` r
+
+P1 <- runif(14, -1, 1)
+P2 <- rcauchy(39)
+P3 <- rnorm(41)
+P4 <- 2*(rbinom(47, 1, 0.4) - 1.5)
+pw_dists <- compute_all_distances(list(P1, P2, P3, P4))
+#> No projection directions (thetas) supplied. Assuming univariate distributions.
+pw_dists
+#>            [,1]     [,2]       [,3]      [,4]
+#> [1,]  0.0000000 13.96197  0.3926126  4.010920
+#> [2,] 13.9619674  0.00000 11.3016628 18.016477
+#> [3,]  0.3926126 11.30166  0.0000000  4.670274
+#> [4,]  4.0109200 18.01648  4.6702741  0.000000
+```
+
+The actual $`\mathbf{W}_2`$ distances can now be obtain by taking the
+square root:
+
+``` r
+
+sqrt(pw_dists)
+#>           [,1]     [,2]      [,3]     [,4]
+#> [1,] 0.0000000 3.736572 0.6265881 2.002728
+#> [2,] 3.7365716 0.000000 3.3617946 4.244582
+#> [3,] 0.6265881 3.361795 0.0000000 2.161082
+#> [4,] 2.0027281 4.244582 2.1610817 0.000000
+```
+
+Different orders ($`p`$) can be specified, too:
+
+``` r
+
+compute_all_distances(list(P1, P2, P3, P4), p = 1)
+#> No projection directions (thetas) supplied. Assuming univariate distributions.
+#>           [,1]     [,2]      [,3]     [,4]
+#> [1,] 0.0000000 1.412198 0.4530223 1.896643
+#> [2,] 1.4121982 0.000000 1.2034373 2.483512
+#> [3,] 0.4530223 1.203437 0.0000000 2.075587
+#> [4,] 1.8966435 2.483512 2.0755873 0.000000
+```
+
+## Wasserstein distances between projected multivariate distributions
+
+While it is possible to define Wasserstein distances between
+$`d`$-dimensinal distributions for $`d \geq 2`$, these distances are
+expensive to compute. Moreover, they are not Hilbertian. However, what
+we can do is define a number of vectors
+$`\theta_1, \dots, \theta_L \in \mathbb{R}^d`$ and compute
+$`p`$-Wasserstein distances between the projections of the distributions
+onto these vectors.
+
+More precisely, let $`P_1, \dots, P_N`$ be $`d`$-dimensional empirical
+distributions and let $`\theta_1, \dots, \theta_L`$ be projection
+vectors in $`\mathbb{R}^d`$. We now compute
+
+``` math
+\mathbf{W}_p({\theta_{\ell}}_{\#}^{\star} P_i, {\theta_{\ell}}_{\#}^{\star} P_j)
+```
+for all $`\ell = 1, \dots, L, 1 \leq i < j \leq N`$, where
+$`v_{\#}^{\star}Q`$ is the pushforward (image) measure of $`Q`$ under
+the map $`x \mapsto v^{\top}x`$.
+
+Using `slicer`, we can compute these $`L \cdot N(N-1)/2`$ pairwise
+distances as follows. We represent each $`d`$-dimensional empirical
+distribution
+
+``` math
+P_i = \frac{1}{n_i}\sum_{k = 1}^{n_i} \delta_{x_{i, k}},
+```
+with $`x_{i,k} \in \mathbb{R}^d`$, as a matrix,
+
+``` math
+M_i = 
+\begin{pmatrix}
+  x^{\top}_{i, 1} \\
+  \vdots \\
+  x^{\top}_{i, n_i}
+\end{pmatrix} \in \mathbb{R}^{n_i \times d}.
+```
+
+We put these matrices $`M_1, \dots, M_N`$ in a list.
+
+Then, we define a matrix
+
+``` math
+\Theta = \begin{pmatrix} \theta^{\top}_1 \\ \vdots \\ \theta^{\top}_L \end{pmatrix} \in \mathbb{R}^{L \times d}
+```
+that contains the projection vectors. If we’re just interested in
+obtaining Wasserstein distances between the corresponding marginal
+distributions, we set $`\Theta = I_d`$.
+
+Then, we feed the list of $`M`$-matrices and $`\Theta`$ to
+[`compute_all_distances()`](https://janhove.github.io/slicer/reference/compute_all_distances.md).
+
+By way of example,
+
+``` r
+
+rgmm_random <- function(n, C, r) {
+  p <- sample.int(C, 1) 
+  mu <- matrix(runif(p * r, -5, 5), nrow = p, ncol = r)
+  chol_list <- lapply(seq_len(p), function(j) {
+    a <- runif(1, 1, 4)
+    A <- matrix(runif(r * r, -1, 1), r, r)
+    B <- diag(runif(r, 0, 1), nrow = r)
+    Sigma <- a * tcrossprod(A) + B
+    chol(Sigma)       
+  })
+  z <- sample.int(p, n, replace = TRUE)
+  X <- matrix(0, nrow = n, ncol = r)
+  for (j in seq_len(p)) {
+    idx <- which(z == j)
+    m <- length(idx)
+    if (m > 0) {
+      Z <- matrix(rnorm(m * r), m, r)
+      X[idx, ] <- Z %*% chol_list[[j]] +
+        matrix(mu[j, ], m, r, byrow = TRUE)
+    }
+  }
+  list(distribution = X, components = p)
+}
+rgmm_random_T <- function(N = 100, n = 50, C = 2, r = 2) {
+  replicate(N, rgmm_random(n, C, r), simplify = FALSE)
+}
+```
+
+**Todo: Example with GMMs.**
+
+## Sliced Wasserstein distances

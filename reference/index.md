@@ -15,8 +15,6 @@
   : Sum of Kernels
 - [`matern()`](https://janhove.github.io/slicer/reference/matern.md) :
   Matérn Kernel
-- [`matern_multiple()`](https://janhove.github.io/slicer/reference/matern_multiple.md)
-  : Sum of Matérn Kernels
 - [`nlpd_gpr()`](https://janhove.github.io/slicer/reference/nlpd_gpr.md)
   : Negative Log Predictive Density for Gaussian Process Regression
   Models
@@ -25,11 +23,7 @@
   Algorithm
 - [`powexp()`](https://janhove.github.io/slicer/reference/powexp.md) :
   Power Exponential Kernel
-- [`powexp_multiple()`](https://janhove.github.io/slicer/reference/powexp_multiple.md)
-  : Sum of Power Exponential Kernels
 - [`rbf()`](https://janhove.github.io/slicer/reference/rbf.md) :
   Gaussian Radial Basis Function Kernel
-- [`rbf_multiple()`](https://janhove.github.io/slicer/reference/rbf_multiple.md)
-  : Sum of Gaussian Radial Basis Function Kernels
 - [`sliced_wasserstein()`](https://janhove.github.io/slicer/reference/sliced_wasserstein.md)
   : Sliced Wasserstein Distance Between Two Empirical Distributions

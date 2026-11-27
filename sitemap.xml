@@ -4,6 +4,7 @@
 <url><loc>https://janhove.github.io/slicer/LICENSE.html</loc></url>
 <url><loc>https://janhove.github.io/slicer/articles/index.html</loc></url>
 <url><loc>https://janhove.github.io/slicer/articles/sliced-wasserstein-workflow.html</loc></url>
+<url><loc>https://janhove.github.io/slicer/articles/wasserstein-computations.html</loc></url>
 <url><loc>https://janhove.github.io/slicer/authors.html</loc></url>
 <url><loc>https://janhove.github.io/slicer/index.html</loc></url>
 <url><loc>https://janhove.github.io/slicer/reference/compute_all_distances.html</loc></url>
@@ -13,13 +14,10 @@
 <url><loc>https://janhove.github.io/slicer/reference/index.html</loc></url>
 <url><loc>https://janhove.github.io/slicer/reference/kernel_sum.html</loc></url>
 <url><loc>https://janhove.github.io/slicer/reference/matern.html</loc></url>
-<url><loc>https://janhove.github.io/slicer/reference/matern_multiple.html</loc></url>
 <url><loc>https://janhove.github.io/slicer/reference/nlpd_gpr.html</loc></url>
 <url><loc>https://janhove.github.io/slicer/reference/nw_corner_distance.html</loc></url>
 <url><loc>https://janhove.github.io/slicer/reference/powexp.html</loc></url>
-<url><loc>https://janhove.github.io/slicer/reference/powexp_multiple.html</loc></url>
 <url><loc>https://janhove.github.io/slicer/reference/rbf.html</loc></url>
-<url><loc>https://janhove.github.io/slicer/reference/rbf_multiple.html</loc></url>
 <url><loc>https://janhove.github.io/slicer/reference/sliced_wasserstein.html</loc></url>
 </urlset>
 
