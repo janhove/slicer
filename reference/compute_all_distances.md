@@ -4,7 +4,10 @@ This function computes Wasserstein distances between the projections of
 several empirical directions along specified projection directions. The
 projection directions can optionally be transformed by means of a linear
 map. The functions can output the distances along each projection
-direction, or the distances averaged over projection directions.
+direction, or the distances averaged over projection directions. If the
+projection directions are uniformly sampled from the unit sphere (using
+[`generate_directions()`](https://janhove.github.io/slicer/reference/generate_directions.md)),
+the averaged version estimates the sliced Wasserstein distances.
 
 ## Usage
 

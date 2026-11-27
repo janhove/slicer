@@ -3,11 +3,17 @@
 of several empirical directions along specified projection directions.
 The projection directions can optionally be transformed by means of a linear map.
 The functions can output the distances along each projection direction,
-or the distances averaged over projection directions."><meta property="og:description" content="This function computes Wasserstein distances between the projections
+or the distances averaged over projection directions.
+If the projection directions are uniformly sampled from the unit sphere
+(using generate_directions()), the averaged version estimates the
+sliced Wasserstein distances."><meta property="og:description" content="This function computes Wasserstein distances between the projections
 of several empirical directions along specified projection directions.
 The projection directions can optionally be transformed by means of a linear map.
 The functions can output the distances along each projection direction,
-or the distances averaged over projection directions."></head><body>
+or the distances averaged over projection directions.
+If the projection directions are uniformly sampled from the unit sphere
+(using generate_directions()), the averaged version estimates the
+sliced Wasserstein distances."></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -50,7 +56,10 @@ or the distances averaged over projection directions."></head><body>
 of several empirical directions along specified projection directions.
 The projection directions can optionally be transformed by means of a linear map.
 The functions can output the distances along each projection direction,
-or the distances averaged over projection directions.</p>
+or the distances averaged over projection directions.
+If the projection directions are uniformly sampled from the unit sphere
+(using <code><a href="generate_directions.html">generate_directions()</a></code>), the averaged version estimates the
+sliced Wasserstein distances.</p>
     </div>
 
     <div class="section level2">

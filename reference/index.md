@@ -11,8 +11,6 @@
   : Generate Random Projection Directions
 - [`gpr_predict()`](https://janhove.github.io/slicer/reference/gpr_predict.md)
   : Predict Outcomes Using Gaussian Process Regression
-- [`kernel_sum()`](https://janhove.github.io/slicer/reference/kernel_sum.md)
-  : Sum of Kernels
 - [`matern()`](https://janhove.github.io/slicer/reference/matern.md) :
   Matérn Kernel
 - [`nlpd_gpr()`](https://janhove.github.io/slicer/reference/nlpd_gpr.md)
@@ -25,5 +23,3 @@
   Power Exponential Kernel
 - [`rbf()`](https://janhove.github.io/slicer/reference/rbf.md) :
   Gaussian Radial Basis Function Kernel
-- [`sliced_wasserstein()`](https://janhove.github.io/slicer/reference/sliced_wasserstein.md)
-  : Sliced Wasserstein Distance Between Two Empirical Distributions
