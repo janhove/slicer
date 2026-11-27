@@ -97,7 +97,6 @@ Different orders ($p$) can be specified, too:
 compute_all_distances(list(P1, P2, P3, P4), p = 1)
 ```
 
-
 ## Wasserstein distances between projected multivariate distributions
 While it is possible to define Wasserstein distances between
 $d$-dimensinal distributions for $d \geq 2$, these distances are expensive
@@ -134,12 +133,44 @@ We put these matrices $M_1, \dots, M_N$ in a list.
 
 Then, we define a matrix
 
-$$\Theta = \begin{pmatrix} \theta_1 & \cdots & \theta_L \end{pmatrix} \in \mathbb{R}^{d \times L}$$
+$$\Theta = \begin{pmatrix} \theta^{\top}_1 \\ \vdots \\ \theta^{\top}_L \end{pmatrix} \in \mathbb{R}^{L \times d}$$
 that contains the projection vectors.
 If we're just interested in obtaining Wasserstein distances between
 the corresponding marginal distributions, we set $\Theta = I_d$.
 
 Then, we feed the list of $M$-matrices and $\Theta$ to `compute_all_distances()`.
+
+By way of example,
+
+```{r, }
+rgmm_random <- function(n, C, r) {
+  p <- sample.int(C, 1) 
+  mu <- matrix(runif(p * r, -5, 5), nrow = p, ncol = r)
+  chol_list <- lapply(seq_len(p), function(j) {
+    a <- runif(1, 1, 4)
+    A <- matrix(runif(r * r, -1, 1), r, r)
+    B <- diag(runif(r, 0, 1), nrow = r)
+    Sigma <- a * tcrossprod(A) + B
+    chol(Sigma)       
+  })
+  z <- sample.int(p, n, replace = TRUE)
+  X <- matrix(0, nrow = n, ncol = r)
+  for (j in seq_len(p)) {
+    idx <- which(z == j)
+    m <- length(idx)
+    if (m > 0) {
+      Z <- matrix(rnorm(m * r), m, r)
+      X[idx, ] <- Z %*% chol_list[[j]] +
+        matrix(mu[j, ], m, r, byrow = TRUE)
+    }
+  }
+  list(distribution = X, components = p)
+}
+rgmm_random_T <- function(N = 100, n = 50, C = 2, r = 2) {
+  replicate(N, rgmm_random(n, C, r), simplify = FALSE)
+}
+```
+
 
 **Todo: Example with GMMs.**
 
