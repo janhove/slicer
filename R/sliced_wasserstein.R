@@ -9,6 +9,8 @@
 #' unit vectors, allowing users to transform the projection directions
 #' rather than the matrices.
 #'
+#' @noRd
+#'
 #' @param x,y Matrices representing empirical distributions.
 #' @param p Order of sliced Wasserstein distance.
 #' @param thetas Optionally, a matrix, each row of which represents
@@ -18,7 +20,6 @@
 #' @param seed Optional random seed.
 #'
 #' @return Estimated sliced Wasserstein distance of order `p` between `x` and `y`.
-#' @export
 #'
 #' @examples
 #' M1 <- matrix(rnorm(50), ncol = 5)
@@ -65,6 +66,9 @@ sliced_wasserstein <- function(x, y, p = 2, thetas = NULL, L = 50, seed = NULL) 
 #' The projection directions can optionally be transformed by means of a linear map.
 #' The functions can output the distances along each projection direction,
 #' or the distances averaged over projection directions.
+#' If the projection directions are uniformly sampled from the unit sphere
+#' (using `generate_directions()`), the averaged version estimates the
+#' sliced Wasserstein distances.
 #'
 #' @section Squared Wasserstein distances:
 #'
