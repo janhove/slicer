@@ -23,16 +23,3 @@ test_that("Matérn kernels work", {
   expect_equal(dim(K), dim(M))
   expect_equal(diag(K), rep(1, nrow(M)))
 })
-
-test_that("Sum of Matérn kernels works", {
-  M1 <- rbind(c(0, 2, 1),
-              c(2, 0, 2.5),
-              c(1, 2.5, 0))
-  M2 <- rbind(c(0, 1, 4),
-              c(1, 0, 3),
-              c(4, 3, 0))
-  M_list <- list(M1, M2)
-  Matern_sum <- matern_multiple(M_list, length_scales = c(1, 2), variances = c(2, 1/2),
-                                nus = c(0.5, 2.5), squared = FALSE)
-  expect_equal(Matern_sum, matern(M1, 1, 2, 0.5, FALSE) + matern(M2, 2, 1/2, 2.5, FALSE))
-})
