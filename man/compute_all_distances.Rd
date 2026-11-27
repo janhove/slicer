@@ -10,7 +10,7 @@ compute_all_distances(
   A = NULL,
   p = 2,
   verbose = TRUE,
-  keep_projections = TRUE,
+  average = FALSE,
   test_idx = NULL
 )
 }
@@ -25,8 +25,9 @@ compute_all_distances(
 
 \item{verbose}{If \code{TRUE}, show progress.}
 
-\item{keep_projections}{If \code{TRUE}, the distance matrix for each projection direction is output.
-If \code{FALSE}, the distance matrices for the different projection directions are averaged.}
+\item{average}{If \code{FALSE}, the distance matrix for each projection direction is output.
+If \code{TRUE}, the distance matrices for the different projection directions are averaged.
+See details below.}
 
 \item{test_idx}{Optionally, a vector of indices. If supplied, skip the
 distance computations between distribution pairs whose indices both occur
@@ -49,26 +50,11 @@ If the projection directions are uniformly sampled from the unit sphere
 (using \code{generate_directions()}), the averaged version estimates the
 sliced Wasserstein distances.
 }
-\section{Squared Wasserstein distances}{
+\section{Averaging}{
 
 
-The Wasserstein distance of order p = 2 as well as the square root of
-the Wasserstein distance of order p = 1 are Hilbertian distances between
-univariate probability distributions.
-Similarly, the sliced Wasserstein distance of order p = 2 as well as the
-square root of the sliced Wasserstein distance of order p = 1 are Hilbertian
-distances between multivariate distributions.
-We can therefore slot in these distances into the Gaussian radial basis
-function to obtain a valid kernel.
-Downstream, the workflow is simplified somewhat if \code{compute_all_distances()}
-return not the raw Wasserstein distances but the p-Wasserstein and p-sliced
-Wasserstein distances \emph{raised to the p-th power}.
-This way, squared (sliced) 2-Wasserstein distances can directly be fed to,
-say, \code{rbf()} with the default parameter setting \code{squared = TRUE},
-as can the raw (sliced) 1-Wasserstein distances.
-
-Recall that the p-sliced Wasserstein distance is computed as the p-th root
-of the average of p-Wasserstein distances raised to the p-th power.
+When using \code{average = TRUE}, the distances are raised to the p-th power,
+averaged for each distribution pair, and then the p-th root is computed.
 }
 
 \examples{
@@ -76,25 +62,23 @@ M1 <- matrix(rnorm(50), ncol = 5)
 M2 <- matrix(rnorm(50), ncol = 5)
 M3 <- matrix(rnorm(250), ncol = 5)
 
-# Squared sliced Wasserstein of order 2
+# Sliced Wasserstein of order 2
 my_directions <- generate_directions(20, 5)
 compute_all_distances(list(M1, M2, M3), my_directions,
-  keep_projections = FALSE, verbose = FALSE)
+  average = TRUE, verbose = FALSE)
 
-# To obtain raw sliced Wasserstein of order 2, take square root.
-
-# (Raw) sliced Wasserstein of order 1
+# Sliced Wasserstein of order 1
 compute_all_distances(list(M1, M2, M3), my_directions, p = 1,
-  keep_projections = FALSE, verbose = FALSE)
+  average = TRUE, verbose = FALSE)
 
 # Marginal squared 2-Wasserstein distances:
 marginal_wass <- compute_all_distances(list(M1, M2, M3), diag(1, 5),
-  keep_projections = TRUE, verbose = FALSE)
+  average = FALSE, verbose = FALSE)
 marginal_wass[[3]] # along third dimension
 
 # Reweight projection directions (shear transformation)
 A <- diag(c(4, 0.5, 3, 2, 1))
 shear_wass <- compute_all_distances(list(M1, M2, M3), diag(1, 5), A = A,
-  keep_projections = TRUE, verbose = FALSE)
+  average = FALSE, verbose = FALSE)
 shear_wass[[3]]
 }

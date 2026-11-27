@@ -4,7 +4,7 @@
 \alias{rbf}
 \title{Gaussian Radial Basis Function Kernel}
 \usage{
-rbf(D, length_scale = 1, variance = 1, squared = TRUE)
+rbf(D, length_scale = 1, variance = 1, squared = FALSE)
 }
 \arguments{
 \item{D}{Matrix with pairwise (possibly squared) distances.}
@@ -13,8 +13,8 @@ rbf(D, length_scale = 1, variance = 1, squared = TRUE)
 
 \item{variance}{Kernel variance parameter.}
 
-\item{squared}{If \code{TRUE} (default), \code{D} is assumed to contain squared
-distances. Set to \code{FALSE} if this is not the case.}
+\item{squared}{If \code{TRUE}, \code{D} is assumed to contain squared
+distances. The default is \code{FALSE}.}
 }
 \value{
 A kernel matrix with the same dimensions as \code{D}.
@@ -27,5 +27,5 @@ a distance matrix.
 M <- rbind(c(0, 2, 1),
            c(2, 0, 2.5),
            c(1, 2.5, 0))
-rbf(M, squared = FALSE)
+rbf(M)
 }

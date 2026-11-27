@@ -148,11 +148,11 @@ matrix_trace <- function(M) {
 #' @param kernel Kernel name ("rbf", "matern", "powerexp").
 #' @param param Additional kernel parameter (smoothness parameter for Matérn,
 #'  exponent for power exponential; ignored for RBF).
-#' @param squared If `TRUE` (default), `D` is assumed to contain squared
-#'    distances. Set to `FALSE` if this is not the case.
+#' @param squared If `TRUE`, `D` is assumed to contain squared
+#'    distances. Defaults to FALSE.
 #'
 #' @return Kernel matrix.
-my_kernel <- function(D, length_scale, variance, kernel, param, squared = TRUE) {
+my_kernel <- function(D, length_scale, variance, kernel, param, squared = FALSE) {
   switch(kernel,
          rbf = rbf(D, length_scale = length_scale, variance = variance,
                    squared = squared),

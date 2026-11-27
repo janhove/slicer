@@ -39,7 +39,8 @@ and
 
 $$Q = \frac{1}{n}\sum_{j=1}^n \delta_{y_j},$$
 
-we want to compute the Wasserstein distance of order $p \in [1, \infty)$.
+we want to compute the Wasserstein distance of order $p \in [1, \infty)$
+between $P$ and $Q$.
 This is defined as
 
 $$\mathbf{W}_p(P, Q) := \min_{\substack{X \sim P \\ Y \sim Q}} \left(\mathbb{E}|X - Y|^p\right)^{1/p}.$$
@@ -72,23 +73,15 @@ The function `compute_all_distances()` takes a list of empirical distributions
 represented as vectors (or matrices).
 If we don't specify anything to the contrary, it will assume that the input
 distributions are all univariate.
-By default, it outputs the pairwise $p$-Wasserstein distances _raised to the $p$-th_power_.
-(The reason is that, in practice, we will often )
-Also by default, $p = 2$ is used.
+By default, Wasserstein distances of order $p = 2$ are computed.
 
 ```{r}
-P1 <- runif(14, -1, 1)
-P2 <- rcauchy(39)
+P1 <- P
+P2 <- Q
 P3 <- rnorm(41)
 P4 <- 2*(rbinom(47, 1, 0.4) - 1.5)
 pw_dists <- compute_all_distances(list(P1, P2, P3, P4))
 pw_dists
-```
-
-The actual $\mathbf{W}_2$ distances can now be obtain by taking the square root:
-
-```{r}
-sqrt(pw_dists)
 ```
 
 Different orders ($p$) can be specified, too:
@@ -178,11 +171,10 @@ We generate $N = 6$  8-dimensional empirical distributions by
 drawing samples of size $n = 500$ from Gaussian mixture models with between
 1 and $C = 4$ mixture components. (It is not necessary for the distributions
 to be supported on the same number of points.)
+
 ```{r}
 rgmms <- rgmm_random_N(N = 6, n = 500, C = 4, d = 8)
 distributions <- lapply(rgmms, `[[`, "distribution") 
-is.list(distributions)
-length(distributions)
 ```
 
 If we want to compute the pairwise Wasserstein distances between the corresponding
@@ -209,7 +201,7 @@ all_dists <- compute_all_distances(distributions, Theta)
 ```
 
 The object `all_dists` is a list with 9 elements (the number of projection directions),
-each of which contains squared 2-Wasserstein distances:
+each of which contains Wasserstein distances of order $p = 2$:
 
 ```{r}
 # Along fourth canonical basis vector
@@ -229,24 +221,25 @@ The function `generate_directions()` takes care of this:
 Theta <- generate_directions(L = 50, d = 8)
 ```
 
-We again use `compute_all_distances()` but set the `keep_projections` parameter
-to `FALSE`. The function now works just as before, i.e., it computes
-$\mathbf{W}_p^p$ values between the projected distributions, but it now averages
-the $L$ values for each distribution pair. By default, squared sliced Wasserstein
+We again use `compute_all_distances()` but set the `average` parameter
+to `TRUE`. 
+The function now averages the $L$ Wasserstein distances computed for each 
+pair of distributions like so:
+
+$$\widehat{\mathbf{SW}}_p(P_i, P_j) = \left(\frac{1}{L}\sum_{\ell = 1}^L \mathbf{W}^p_p({\theta_{\ell}}_{\#}^{\star} P_i, {\theta_{\ell}}_{\#}^{\star} P_j)\right)^{1/p}.$$
+By default, squared sliced Wasserstein
 distances of order $p = 2$ are output:
 
 ```{r}
-sw_dists <- compute_all_distances(distributions, Theta, 
-                                  keep_projections = FALSE)
+sw_dists <- compute_all_distances(distributions, Theta, average = TRUE)
 sw_dists
 ```
 
 Of course, sliced Wasserstein distances of other orders can be computed.
-This outputs the (raw) sliced Wasserstein distances of order $p = 1$:
+This outputs the sliced Wasserstein distances of order $p = 1$:
 
 ```{r}
-sw_dists_1 <- compute_all_distances(distributions, Theta, p = 1,
-                                    keep_projections = FALSE)
+sw_dists_1 <- compute_all_distances(distributions, Theta, p = 1, average = TRUE)
 sw_dists_1
 ```
 

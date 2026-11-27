@@ -8,7 +8,7 @@
 #'
 #' @noRd
 #'
-#' @param D2 Matrix, or list of matrices, with squared pairwise distances between the
+#' @param D Matrix, or list of matrices, with pairwise distances between the
 #'    training objects only, or
 #' @param y_train Vector with outcomes for the training objects.
 #' @param centre Set to `TRUE` (default) when centring training outcomes
@@ -27,6 +27,7 @@
 #'    (smoothness for Matérn, exponent for power exponential; ignored for RBF).
 #'    If a single kernel is specified but a list of distance matrices is supplied,
 #'    the same kernel is used for all distance matrices.
+#' @param squared Set to `TRUE` if `D` contains squared distances. Defaults to `FALSE`.
 #' @param runs Number of independent attempts to find a minimum.
 #' @param verbose If `TRUE`, progress is shown.
 #' @param maxit Maximum number of iterations during optimisation.
@@ -35,29 +36,27 @@
 #'    (kernel variance and kernel length-scale for each kernel as well as
 #'    noise variance) as well as the marginal negative log-likelihood achieved.
 find_hyperparameters <- function(
-    D2, y_train, centre = TRUE, use_gradient = TRUE, kernels = "rbf",
-    params = NA, runs = 10, verbose = TRUE, maxit = 500
+    D, y_train, centre = TRUE, use_gradient = TRUE, kernels = "rbf",
+    params = NA, squared = FALSE, runs = 10, verbose = TRUE, maxit = 500
 ) {
   # Set kernel -----------------------------------------------------------------
   if (any(!(kernels %in% c("rbf", "powexp", "matern")))) {
     stop("There is at least one invalid kernel name.")
   }
 
-  if (length(kernels) == 1L) kernels <- rep(kernels, length(D2))
-  if (length(params) == 1L) params <- rep(params, length(D2))
-
   # For later: Generalise use of gradients to other kernels
   use_gradient <- use_gradient && all(kernels == "rbf")
 
   # Precomputations ------------------------------------------------------------
-  if (!is.list(D2)) D2 <- list(D2)
-  L <- length(D2)
+  if (!is.list(D)) D <- list(D)
+  L <- length(D)
 
   if (centre) y_train <- y_train - mean(y_train)
   n <- length(y_train)
   log_yvar <- log(stats::var(y_train))
 
-  meds <- sqrt(vapply(D2, find_median, FUN.VALUE = 0.0))
+  meds <- vapply(D, find_median, FUN.VALUE = 0.0)
+  if (squared) meds <- sqrt(meds)
 
   # Cacheing (initialisation) --------------------------------------------------
   last_log_params <- NULL
@@ -72,10 +71,10 @@ find_hyperparameters <- function(
     ls_vec  <- exp(log_params[(L+1):(2*L)])
     lambda2 <- exp(log_params[2*L + 1])
     K_list <- mapply(
-      function(K_l, va, ls, krnl, param)
-        va * my_kernel(K_l, variance = 1, length_scale = ls,
-                       kernel = krnl, param = param),
-      D2, va_vec, ls_vec, kernels, params,
+      function(D_ell, va, ls, krnl, param, sqd)
+        va * my_kernel(D_ell, variance = 1, length_scale = ls,
+                       kernel = krnl, param = param, squared = sqd),
+      D, va_vec, ls_vec, kernels, params, squared,
       SIMPLIFY = FALSE
     )
     K <- Reduce(`+`, K_list)
@@ -110,7 +109,7 @@ find_hyperparameters <- function(
     for (ell in 1:L) {
       DK <- va_vec[[ell]] * last_K_list[[ell]]
       jacobian[[ell]] <- 0.5 * sum(M * DK)
-      jacobian[[L + ell]] <- 0.5 * sum(M * DK * D2[[ell]]) / ls_vec[[ell]]^2
+      jacobian[[L + ell]] <- 0.5 * sum(M * DK * D[[ell]]^2) / ls_vec[[ell]]^2
     }
     jacobian[[2*L + 1]] <- 0.5 * lambda2 * sum(diag(M))
 

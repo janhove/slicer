@@ -103,9 +103,9 @@ gpr_predict <- function(Kxx, Kxstar, y_train, centre = TRUE, lambda2 = 1e-6,
 #'
 #' @noRd
 #'
-#' @param D2_list A list of matrices containing squared pairwise distances between all objects.
-#' @param training_idx A vector with the row (and column) numbers corresponding to the training entries in `D2`.
-#' @param test_idx A vector with the row (and column) numbers corresponding to the test entries in `D2`.
+#' @param D A list of matrices containing pairwise distances between all objects.
+#' @param training_idx A vector with the row (and column) numbers corresponding to the training entries in `D`.
+#' @param test_idx A vector with the row (and column) numbers corresponding to the test entries in `D`.
 #' @param y_train A vector with the training outcomes.
 #' @param y_test Optionally, a vector with the test outcomes.
 #' @param centre If `TRUE`, the training outcomes are centred around their mean before fitting the model. The mean is then added back to the predictions at the end.
@@ -114,6 +114,7 @@ gpr_predict <- function(Kxx, Kxstar, y_train, centre = TRUE, lambda2 = 1e-6,
 #'    Only used when RBF kernels are used.
 #' @param kernels A vector of kernels (`rbf`, `matern`, `powexp`).
 #' @param params A vector of kernel parameters (smoothness for Matern; exponent for power exponential; ignored for RBF).
+#' @param squared If `TRUE`, the distance matrices are assumed to contain squared distances. Defaults to `FALSE`.
 #' @param runs Number of independent attempts to find a minimum when optimising the hyperparameters.
 #' @param verbose If `TRUE`, progress is shown on the console.
 #'
@@ -121,27 +122,27 @@ gpr_predict <- function(Kxx, Kxstar, y_train, centre = TRUE, lambda2 = 1e-6,
 #'     the root mean squared error (if the true test outcomes are provided),
 #'     the tuned hyperparameter values, and the negative log marginal likelihood (nll).
 fit_gpr_one_core <- function(
-    D2_list, training_idx, test_idx, y_train, y_test = NULL,
+    D, training_idx, test_idx, y_train, y_test = NULL,
     centre = TRUE, use_gradient = TRUE, kernels = "rbf",
-    params = NA, runs = 10, verbose = TRUE, maxit = 500)
+    params = NA, squared = FALSE, runs = 10, verbose = TRUE, maxit = 500)
   {
   select_entries <- function(M, idx) {
     M[idx, idx]
   }
-  D2_train_list <- lapply(D2_list, select_entries, training_idx)
+  D_train <- lapply(D, select_entries, training_idx)
   tuned_hyperparams <- find_hyperparameters(
-    D2_train_list, y_train, centre = centre, use_gradient = use_gradient,
+    D_train, y_train, centre = centre, use_gradient = use_gradient,
     runs = runs, verbose = verbose, kernels = kernels, params = params,
-    maxit = maxit
+    maxit = maxit, squared = squared
   )
   variance <- tuned_hyperparams$variance
   length_scale <- tuned_hyperparams$length_scale
   lambda2 <- tuned_hyperparams$lambda2
 
-  if (length(kernels) == 1L) kernels <- rep(kernels, length(D2_list))
+  if (length(kernels) == 1L) kernels <- rep(kernels, length(D))
 
-  K <- kernel_sum(D2_list, length_scales = length_scale, variances = variance,
-                  kernels = kernels, params = params)
+  K <- kernel_sum(D, length_scales = length_scale, variances = variance,
+                  kernels = kernels, params = params, squared = squared)
   Kxx <- K[training_idx, training_idx]
   Kxstar <- K[test_idx, training_idx]
   Kxstarstar <- K[test_idx, test_idx]
@@ -167,9 +168,9 @@ fit_gpr_one_core <- function(
 #' with one or several Gaussian RBF kernels. The hyperparameters are tuned using the
 #' training data by minimising the model's negative marginal log-likelihood.
 #'
-#' @param D2 A matrix, or a list of matrices, containing squared pairwise distances between all objects.
-#' @param training_idx A vector with the row (and column) numbers corresponding to the training entries in `D2`.
-#' @param test_idx A vector with the row (and column) numbers corresponding to the test entries in `D2`.
+#' @param D A matrix, or a list of matrices, containing pairwise distances between all objects.
+#' @param training_idx A vector with the row (and column) numbers corresponding to the training entries in `D`.
+#' @param test_idx A vector with the row (and column) numbers corresponding to the test entries in `D`.
 #' @param y_train A vector with the training outcomes.
 #' @param y_test Optionally, a vector with the test outcomes.
 #' @param centre If `TRUE`, the training outcomes are centred around their mean before fitting the model. The mean is then added back to the predictions at the end.
@@ -178,6 +179,7 @@ fit_gpr_one_core <- function(
 #'                     Ignored when non-RBF kernels are used.
 #' @param kernels A vector with kernels (`"rbf", "powexp", "matern"`).
 #' @param params Kernel parameters (smoothness for Matern; exponent for power exponential; ignored for RBF).
+#' @param squared Set to `TRUE` if the distances in `D` are squared. Defaults to `FALSE`.
 #' @param runs Number of independent attempts to find a minimum when optimising the hyperparameters.
 #' @param cores Number of cores used for parallel processing.
 #' @param verbose If `TRUE`, progress is shown on the console. Only works if `cores == 1L`.
@@ -199,10 +201,11 @@ fit_gpr_one_core <- function(
 #' x_test2  <- runif(N2, 0, 1)
 #' y_train <- x_train2 * plogis(x_train1) * cos(x_train1)
 #' y_test <- x_test2 * plogis(x_test1) * cos(x_test1)
-#' D2_1 <- outer(c(x_train1, x_test1), c(x_train1, x_test1), "-")^2
-#' D2_2 <- outer(c(x_train2, x_test2), c(x_train2, x_test2), "-")^2
+#' D1 <- outer(c(x_train1, x_test1), c(x_train1, x_test1), "-") |> abs()
+#' D2 <- outer(c(x_train2, x_test2), c(x_train2, x_test2), "-") |> abs()
+#'
 #' # Single core
-#' fit <- fit_gpr(list(D2_1, D2_2), seq_len(N1), N1 + seq_len(N2),
+#' fit <- fit_gpr(list(D1, D2), seq_len(N1), N1 + seq_len(N2),
 #'   y_train, y_test, runs = 50)
 #' plot(y_test, fit$test_predictions)
 #' abline(a = 0, b = 1, lty = 1)
@@ -210,8 +213,9 @@ fit_gpr_one_core <- function(
 #'   y0 = fit$test_predictions - 2 * sqrt(diag(fit$test_variance)),
 #'   y1 = fit$test_predictions + 2 * sqrt(diag(fit$test_variance)), lty = 2)
 #' fit
+#'
 #' # Multiple cores
-#' fit <- fit_gpr(list(D2_1, D2_2), seq_len(N1), N1 + seq_len(N2),
+#' fit <- fit_gpr(list(D1, D2), seq_len(N1), N1 + seq_len(N2),
 #'  y_train, y_test, runs = 50, cores = 2L)
 #' fit
 #'
@@ -222,8 +226,8 @@ fit_gpr_one_core <- function(
 #' x_test  <- runif(N2, -pi, pi)
 #' y_train <- x_train * plogis(x_train) * cos(x_train) + rnorm(N1, sd = 0.5)
 #' y_test <- x_test * plogis(x_test) * cos(x_test)
-#' D2 <- outer(c(x_train, x_test), c(x_train, x_test), "-")^2
-#' fit <- fit_gpr(D2, seq_len(N1), N1 + seq_len(N2), y_train, y_test, runs = 50L)
+#' D <- outer(c(x_train, x_test), c(x_train, x_test), "-") |> abs()
+#' fit <- fit_gpr(D, seq_len(N1), N1 + seq_len(N2), y_train, y_test, runs = 50L)
 #' curve(x * plogis(x) * cos(x), -pi, pi,
 #'   ylim = range(
 #'     c(y_train, fit$test_predictions + 2 * sqrt(diag(fit$test_variance)),
@@ -238,14 +242,14 @@ fit_gpr_one_core <- function(
 #' fit
 #' fit$RMSE
 fit_gpr <- function(
-    D2, training_idx, test_idx, y_train, y_test = NULL,
+    D, training_idx, test_idx, y_train, y_test = NULL,
     centre = TRUE, use_gradient = TRUE, kernels = "rbf", params = NA,
-    runs = 10L, cores = 1L, verbose = TRUE, maxit = 500)
+    squared = FALSE, runs = 10L, cores = 1L, verbose = TRUE, maxit = 500)
   {
 
   # Input cleaning -------------------------------------------------------------
-  if (!is.list(D2)) D2 <- list(D2)
-  L <- length(D2)
+  if (!is.list(D)) D <- list(D)
+  L <- length(D)
 
   if (length(kernels) == 1L) kernels <- rep(kernels, L)
   if (length(params) == 1L)  params  <- rep(params, L)
@@ -266,8 +270,9 @@ fit_gpr <- function(
 
   # One core -------------------------------------------------------------------
   if (cores <= 1L) {
-    my_fit <- fit_gpr_one_core(D2, training_idx, test_idx, y_train,
+    my_fit <- fit_gpr_one_core(D, training_idx, test_idx, y_train,
       y_test, centre = centre, use_gradient = use_gradient, runs = runs,
+      squared = squared,
       verbose = verbose, kernels = kernels, params = params, maxit = maxit)
     return(my_fit)
   }
@@ -286,13 +291,14 @@ fit_gpr <- function(
   parallel::clusterEvalQ(cl, library(slicer))
 
   worker <- function(
-    i, D2, training_idx, test_idx, y_train, y_test, centre, use_gradient,
-    runs_per_core, kernels, params, maxit
+    i, D, training_idx, test_idx, y_train, y_test, centre, use_gradient,
+    runs_per_core, kernels, params, maxit, squared
   ) {
     tryCatch(
-      fit_gpr_one_core(D2, training_idx, test_idx, y_train, y_test,
+      fit_gpr_one_core(D, training_idx, test_idx, y_train, y_test,
                        centre = centre, use_gradient = use_gradient,
                        runs = runs_per_core, verbose = FALSE,
+                       squared = squared,
                        kernels = kernels, params = params, maxit = maxit),
       error = function(e) NULL
     )
@@ -301,10 +307,10 @@ fit_gpr <- function(
 
   results <- parallel::parLapply(
     cl, seq_len(cores), worker,
-    D2 = D2, training_idx = training_idx, test_idx = test_idx,
+    D = D, training_idx = training_idx, test_idx = test_idx,
     y_train = y_train, y_test = y_test,
     centre = centre, use_gradient = use_gradient, runs_per_core = runs_per_core,
-    kernels = kernels, params = params, maxit = maxit
+    kernels = kernels, params = params, maxit = maxit, squared = squared
   )
   results <- Filter(Negate(is.null), results)
   if (length(results) == 0L) stop("All optimisation runs failed on all cores.")

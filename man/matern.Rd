@@ -4,7 +4,7 @@
 \alias{matern}
 \title{Matérn Kernel}
 \usage{
-matern(D, length_scale = 1, variance = 1, nu = 1.5, squared = TRUE)
+matern(D, length_scale = 1, variance = 1, nu = 1.5, squared = FALSE)
 }
 \arguments{
 \item{D}{Matrix with pairwise (possibly squared) distances.}
@@ -15,8 +15,8 @@ matern(D, length_scale = 1, variance = 1, nu = 1.5, squared = TRUE)
 
 \item{nu}{Smoothness parameter. Defaults to 1.5.}
 
-\item{squared}{If \code{TRUE} (default), \code{D} is assumed to contain squared
-distances. Set to \code{FALSE} if this is not the case.}
+\item{squared}{If \code{TRUE}, \code{D} is assumed to contain squared
+distances. Defaults to \code{FALSE}.}
 }
 \value{
 A kernel matrix with the same dimensions as \code{D}.
@@ -28,7 +28,7 @@ Builds a Matérn kernel from a distance matrix.
 M <- rbind(c(0, 2, 1),
            c(2, 0, 2.5),
            c(1, 2.5, 0))
-matern(M, nu = 0.5, squared = FALSE)
-matern(M, nu = 1.5, squared = FALSE)
-matern(M, nu = 2.5, squared = FALSE)
+matern(M, nu = 0.5)
+matern(M, nu = 1.5)
+matern(M, nu = 2.5)
 }

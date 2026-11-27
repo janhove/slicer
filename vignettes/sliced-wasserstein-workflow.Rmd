@@ -1,5 +1,5 @@
 ---
-title: "(Sliced) Wasserstein - Gaussian process regression workflow"
+title: "(Sliced) Wasserstein kernels and Gaussian process regression"
 output:
   rmarkdown::html_vignette:
     fig_width: 7
@@ -7,7 +7,7 @@ output:
     fig_align: "center"
     dev: svg
 vignette: >
-  %\VignetteIndexEntry{(Sliced) Wasserstein - Gaussian process regression workflow}           
+  %\VignetteIndexEntry{(Sliced) Wasserstein kernels and Gaussian process regression}           
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -27,7 +27,7 @@ with four isotropic components laid out symmetrically around the origin.
 These distributions differ from one another in that they are rotated
 counterclockwise by an angle $\omega \in [0, \pi/2)$.
 The goal of the analysis is to retrieve the specific angles by which
-the distributions have been rotated.
+the distributions were rotated.
 
 ## Functions
 Let's load `slicer`.
@@ -60,7 +60,7 @@ one of $\omega = 3\pi/8$.
 
 ```{r}
 #| fig.width = 9
-set.seed(2026) # for reproducibility
+set.seed(20261127)
 
 op <- par(no.readonly = TRUE, bty = "n")
 par(mfrow = c(1, 2))
@@ -91,200 +91,200 @@ for (i in seq_len(N_train + N_test)) {
 }
 ```
 
-## Distances
-We can use `compute_all_distances()` to compute pairwise distances
-between the input distributions.
-If we supply the optional vector `test_idx` with the test set indices,
-the pairwise distance computations between test objects 
-(which are not needed for obtaining predictions) are skipped.
-To compute **sliced Wasserstein distances**, we need to first generate
-$\boldsymbol{\theta_1}, \dots, \boldsymbol{\theta_L}$ 
-sampled uniformly at random from the unit sphere;
-`generate_directions()` takes care of this.
-We'll use $L = 25$ and set $d = 2$ since we're working in two dimensions.
-If we're only interested in the estimated sliced Wasserstein distances,
-we can set `keep_projections` to `FALSE`.
+<!-- ## Distances -->
+<!-- We can use `compute_all_distances()` to compute pairwise distances -->
+<!-- between the input distributions. -->
+<!-- If we supply the optional vector `test_idx` with the test set indices, -->
+<!-- the pairwise distance computations between test objects  -->
+<!-- (which are not needed for obtaining predictions) are skipped. -->
+<!-- To compute **sliced Wasserstein distances**, we need to first generate -->
+<!-- $\boldsymbol{\theta_1}, \dots, \boldsymbol{\theta_L}$  -->
+<!-- sampled uniformly at random from the unit sphere; -->
+<!-- `generate_directions()` takes care of this. -->
+<!-- We'll use $L = 25$ and set $d = 2$ since we're working in two dimensions. -->
+<!-- If we're only interested in the estimated sliced Wasserstein distances, -->
+<!-- we can set `keep_projections` to `FALSE`. -->
 
-```{r}
-thetas <- generate_directions(L = 25, d = 2)
-sw_distances <- compute_all_distances(distributions, thetas, verbose = FALSE,
-    keep_projections = FALSE, test_idx = N_train + seq_len(N_test))
-```
+<!-- ```{r} -->
+<!-- thetas <- generate_directions(L = 25, d = 2) -->
+<!-- sw_distances <- compute_all_distances(distributions, thetas, verbose = FALSE, -->
+<!--     keep_projections = FALSE, test_idx = N_train + seq_len(N_test)) -->
+<!-- ``` -->
 
-The $60 \times 60$ matrix `sw_distances` contains the _squared_ (estimated)
-sliced Wasserstein distances among the forty training objects and between
-the training objects and the twenty test objects.
-The pairwise distances among the test objects are set to `NA`:
+<!-- The $60 \times 60$ matrix `sw_distances` contains the _squared_ (estimated) -->
+<!-- sliced Wasserstein distances among the forty training objects and between -->
+<!-- the training objects and the twenty test objects. -->
+<!-- The pairwise distances among the test objects are set to `NA`: -->
 
-```{r, eval = FALSE}
-sw_distances # output not shown
-```
-
-
-We can also compute (normal) **Wasserstein distances** between 
-the distributions when they are projected along certain dimensions.
-For instances, to compute the pairwise Wasserstein distances along
-the first margin and along the second margin, we set the 
-projection directions to 
-$\boldsymbol{e_1} = (1, 0)^{\top}$ and 
-$\boldsymbol{e_2} = (0, 1)^{\top}$.
-We also set `keep_projections = TRUE`, which will cause the function to
-output a list of two matrices with _squared_ Wasserstein distances:
-one for each margin.
-
-```{r}
-marginal_distances <- compute_all_distances(distributions, diag(1, 2), 
-    verbose = FALSE, keep_projections = TRUE, 
-    test_idx = N_train + seq_len(N_test))
-str(marginal_distances)
-```
-
-## Gaussian process models with tuned hyperparameters
-The function `fit_gpr()` takes a single matrix with squared pairwise 
-distances and uses it as input to a Gaussian process regression model
-with (by default) a Gaussian RBF kernel:
-$$k_{\textrm{RBF}}(x, x') = s^2\exp\left(-\frac{d^2(x, x')}{2t^2}\right)$$,
-where $s^2 > 0$ is a scaling factor, $t > 0$ is the length-scale,
-and $d(x, x')$ is the distance between the inputs $x$ and $x'$.
-
-The model's and the kernel's hyperparameters
-are tuned using the training data by minimising the negative
-marginal log-likelihood. 
-
-```{r}
-sw_fit <- fit_gpr(sw_distances,
-  training_idx = seq_len(N_train),
-  test_idx = N_train + seq_len(N_test),
-  y_train = angles[seq_len(N_train)], 
-  y_test = angles[N_train + seq_len(N_test)],
-  verbose = TRUE)
-```
-
-The output includes predictions for the test data,
-the covariannce for the predictions
-(if the true test outcomes were provided), 
-and the estimated hyperparameters.
-
-```{r}
-str(sw_fit)
-plot(angles[N_train + seq_len(N_test)], sw_fit$test_predictions,
-     xlab = "true test outcomes", ylab = "predicted test outcomes", asp = 1)
-```
-
-Since we didn't compute the distances between the test inputs, 
-only the predictions variances are reported (the main diagonal of `test_variance`):
-```{r}
-diag(sw_fit$test_variance)
-```
-Had we also computed the distances between the test inputs,
-`test_variance` would have also included the covariances.
-
-The function `fit_gpr()` can also be used when multiple matrices 
-with squared distances are provided.
-Now, estimated length-scale and (kernel) variance hyperparameters
-are provided for the Gaussian RBF corresponding to each squared distance matrix.
-
-```{r}
-marginal_fit <- fit_gpr(marginal_distances,
-  training_idx = seq_len(N_train),
-  test_idx = N_train + seq_len(N_test),
-  y_train = angles[seq_len(N_train)], 
-  y_test = angles[N_train + seq_len(N_test)],
-  verbose = TRUE)
-str(marginal_fit)
-plot(angles[N_train + seq_len(N_test)], marginal_fit$test_predictions,
-     xlab = "true test outcomes", ylab = "predicted test outcomes", asp = 1)
-```
-
-We can combine the marginal and sliced Wasserstein distances into a list with
-three distance matrices, too:
-
-```{r}
-total_fit <- fit_gpr(list(sw_distances, marginal_distances[[1]], marginal_distances[[2]]),
-  training_idx = seq_len(N_train),
-  test_idx = N_train + seq_len(N_test),
-  y_train = angles[seq_len(N_train)], 
-  y_test = angles[N_train + seq_len(N_test)],
-  verbose = TRUE)
-str(total_fit)
-plot(angles[N_train + seq_len(N_test)], total_fit$test_predictions,
-     xlab = "true test outcomes", ylab = "predicted test outcomes", asp = 1)
-```
-
-Parallel processing can be enabled using the `cores` parameter:
-
-```{r}
-total_fit <- fit_gpr(list(sw_distances, marginal_distances[[1]], marginal_distances[[2]]),
-  training_idx = seq_len(N_train),
-  test_idx = N_train + seq_len(N_test),
-  y_train = angles[seq_len(N_train)],
-  y_test = angles[N_train + seq_len(N_test)],
-  runs = 50L, cores = 2L)
-str(total_fit)
-```
-
-Instead of the Gaussian RBF kernel, the Matérn kernels with
-smoothness parameter $\nu$ can be used.
-We can use a different kernel for each distance matrix;
-the total kernel used is then the conical combination of these kernels.
-For instance, the following fit uses the Matérn kernel with $\nu = 2.5$
-for the sliced Wasserstein distances,
-the Matérn kernel with $\nu = 0.5$ for the Wasserstein distances along the
-first axis, and the Matérn kernel with $\nu = 1.5$ for the Wasserstein
-distances alogn the second axis.
-
-```{r}
-total_fit_matern <- fit_gpr(list(sw_distances, marginal_distances[[1]], marginal_distances[[2]]),
-  training_idx = seq_len(N_train),
-  test_idx = N_train + seq_len(N_test),
-  y_train = angles[seq_len(N_train)],
-  y_test = angles[N_train + seq_len(N_test)],
-  kernels = c("matern", "matern", "matern"),
-  params = c(2.5, 0.5, 1.5),
-  runs = 50L, cores = 2L)
-str(total_fit_matern)
-```
-
-Power exponential (`"powexp"`) kernels are available, too.
-They take an exponent $\kappa \in (0, 2]$ as their parameter;
-here, $\kappa_1 = 1.2, \kappa_2 = 1, \kappa_3 = 0.8$:
-
-```{r}
-total_fit_powexp <- fit_gpr(list(sw_distances, marginal_distances[[1]], marginal_distances[[2]]),
-  training_idx = seq_len(N_train),
-  test_idx = N_train + seq_len(N_test),
-  y_train = angles[seq_len(N_train)],
-  y_test = angles[N_train + seq_len(N_test)],
-  kernels = c("powexp", "powexp", "powexp"),
-  params = c(1.2, 1, 0.8),
-  runs = 50L, cores = 2L)
-str(total_fit_powexp)
-```
-
-Different kernels can be applied to different distances matrices:
-
-```{r}
-total_fit_mixed <- fit_gpr(list(sw_distances, marginal_distances[[1]], marginal_distances[[2]]),
-  training_idx = seq_len(N_train),
-  test_idx = N_train + seq_len(N_test),
-  y_train = angles[seq_len(N_train)],
-  y_test = angles[N_train + seq_len(N_test)],
-  kernels = c("matern", "powexp", "rbf"),
-  params = c(2.8, 0.9, NA),
-  runs = 50L, cores = 2L)
-str(total_fit_mixed)
-```
+<!-- ```{r, eval = FALSE} -->
+<!-- sw_distances # output not shown -->
+<!-- ``` -->
 
 
+<!-- We can also compute (normal) **Wasserstein distances** between  -->
+<!-- the distributions when they are projected along certain dimensions. -->
+<!-- For instances, to compute the pairwise Wasserstein distances along -->
+<!-- the first margin and along the second margin, we set the  -->
+<!-- projection directions to  -->
+<!-- $\boldsymbol{e_1} = (1, 0)^{\top}$ and  -->
+<!-- $\boldsymbol{e_2} = (0, 1)^{\top}$. -->
+<!-- We also set `keep_projections = TRUE`, which will cause the function to -->
+<!-- output a list of two matrices with _squared_ Wasserstein distances: -->
+<!-- one for each margin. -->
 
-Finally, a GPR's **negative log predictive density** (NLPD) for some test data
-can be obtained like so:
-```{r}
-nlpd_gpr(total_fit_mixed, angles[N_train + seq_len(N_test)])
-```
+<!-- ```{r} -->
+<!-- marginal_distances <- compute_all_distances(distributions, diag(1, 2),  -->
+<!--     verbose = FALSE, keep_projections = TRUE,  -->
+<!--     test_idx = N_train + seq_len(N_test)) -->
+<!-- str(marginal_distances) -->
+<!-- ``` -->
 
-The warning message occurs because we didn't compute the distances among the
-test inputs themselves. As a result, the kernel matrices don't specify
-the covariance among the test inputs, and the NLPD assumes that they are zero.
-If you remove the `test_idx` parameter setting when running `compute_all_distances()`
-and refit the models, this warning will disappear.
+<!-- ## Gaussian process models with tuned hyperparameters -->
+<!-- The function `fit_gpr()` takes a single matrix with squared pairwise  -->
+<!-- distances and uses it as input to a Gaussian process regression model -->
+<!-- with (by default) a Gaussian RBF kernel: -->
+<!-- $$k_{\textrm{RBF}}(x, x') = s^2\exp\left(-\frac{d^2(x, x')}{2t^2}\right)$$, -->
+<!-- where $s^2 > 0$ is a scaling factor, $t > 0$ is the length-scale, -->
+<!-- and $d(x, x')$ is the distance between the inputs $x$ and $x'$. -->
+
+<!-- The model's and the kernel's hyperparameters -->
+<!-- are tuned using the training data by minimising the negative -->
+<!-- marginal log-likelihood.  -->
+
+<!-- ```{r} -->
+<!-- sw_fit <- fit_gpr(sw_distances, -->
+<!--   training_idx = seq_len(N_train), -->
+<!--   test_idx = N_train + seq_len(N_test), -->
+<!--   y_train = angles[seq_len(N_train)],  -->
+<!--   y_test = angles[N_train + seq_len(N_test)], -->
+<!--   verbose = TRUE) -->
+<!-- ``` -->
+
+<!-- The output includes predictions for the test data, -->
+<!-- the covariannce for the predictions -->
+<!-- (if the true test outcomes were provided),  -->
+<!-- and the estimated hyperparameters. -->
+
+<!-- ```{r} -->
+<!-- str(sw_fit) -->
+<!-- plot(angles[N_train + seq_len(N_test)], sw_fit$test_predictions, -->
+<!--      xlab = "true test outcomes", ylab = "predicted test outcomes", asp = 1) -->
+<!-- ``` -->
+
+<!-- Since we didn't compute the distances between the test inputs,  -->
+<!-- only the predictions variances are reported (the main diagonal of `test_variance`): -->
+<!-- ```{r} -->
+<!-- diag(sw_fit$test_variance) -->
+<!-- ``` -->
+<!-- Had we also computed the distances between the test inputs, -->
+<!-- `test_variance` would have also included the covariances. -->
+
+<!-- The function `fit_gpr()` can also be used when multiple matrices  -->
+<!-- with squared distances are provided. -->
+<!-- Now, estimated length-scale and (kernel) variance hyperparameters -->
+<!-- are provided for the Gaussian RBF corresponding to each squared distance matrix. -->
+
+<!-- ```{r} -->
+<!-- marginal_fit <- fit_gpr(marginal_distances, -->
+<!--   training_idx = seq_len(N_train), -->
+<!--   test_idx = N_train + seq_len(N_test), -->
+<!--   y_train = angles[seq_len(N_train)],  -->
+<!--   y_test = angles[N_train + seq_len(N_test)], -->
+<!--   verbose = TRUE) -->
+<!-- str(marginal_fit) -->
+<!-- plot(angles[N_train + seq_len(N_test)], marginal_fit$test_predictions, -->
+<!--      xlab = "true test outcomes", ylab = "predicted test outcomes", asp = 1) -->
+<!-- ``` -->
+
+<!-- We can combine the marginal and sliced Wasserstein distances into a list with -->
+<!-- three distance matrices, too: -->
+
+<!-- ```{r} -->
+<!-- total_fit <- fit_gpr(list(sw_distances, marginal_distances[[1]], marginal_distances[[2]]), -->
+<!--   training_idx = seq_len(N_train), -->
+<!--   test_idx = N_train + seq_len(N_test), -->
+<!--   y_train = angles[seq_len(N_train)],  -->
+<!--   y_test = angles[N_train + seq_len(N_test)], -->
+<!--   verbose = TRUE) -->
+<!-- str(total_fit) -->
+<!-- plot(angles[N_train + seq_len(N_test)], total_fit$test_predictions, -->
+<!--      xlab = "true test outcomes", ylab = "predicted test outcomes", asp = 1) -->
+<!-- ``` -->
+
+<!-- Parallel processing can be enabled using the `cores` parameter: -->
+
+<!-- ```{r} -->
+<!-- total_fit <- fit_gpr(list(sw_distances, marginal_distances[[1]], marginal_distances[[2]]), -->
+<!--   training_idx = seq_len(N_train), -->
+<!--   test_idx = N_train + seq_len(N_test), -->
+<!--   y_train = angles[seq_len(N_train)], -->
+<!--   y_test = angles[N_train + seq_len(N_test)], -->
+<!--   runs = 50L, cores = 2L) -->
+<!-- str(total_fit) -->
+<!-- ``` -->
+
+<!-- Instead of the Gaussian RBF kernel, the Matérn kernels with -->
+<!-- smoothness parameter $\nu$ can be used. -->
+<!-- We can use a different kernel for each distance matrix; -->
+<!-- the total kernel used is then the conical combination of these kernels. -->
+<!-- For instance, the following fit uses the Matérn kernel with $\nu = 2.5$ -->
+<!-- for the sliced Wasserstein distances, -->
+<!-- the Matérn kernel with $\nu = 0.5$ for the Wasserstein distances along the -->
+<!-- first axis, and the Matérn kernel with $\nu = 1.5$ for the Wasserstein -->
+<!-- distances alogn the second axis. -->
+
+<!-- ```{r} -->
+<!-- total_fit_matern <- fit_gpr(list(sw_distances, marginal_distances[[1]], marginal_distances[[2]]), -->
+<!--   training_idx = seq_len(N_train), -->
+<!--   test_idx = N_train + seq_len(N_test), -->
+<!--   y_train = angles[seq_len(N_train)], -->
+<!--   y_test = angles[N_train + seq_len(N_test)], -->
+<!--   kernels = c("matern", "matern", "matern"), -->
+<!--   params = c(2.5, 0.5, 1.5), -->
+<!--   runs = 50L, cores = 2L) -->
+<!-- str(total_fit_matern) -->
+<!-- ``` -->
+
+<!-- Power exponential (`"powexp"`) kernels are available, too. -->
+<!-- They take an exponent $\kappa \in (0, 2]$ as their parameter; -->
+<!-- here, $\kappa_1 = 1.2, \kappa_2 = 1, \kappa_3 = 0.8$: -->
+
+<!-- ```{r} -->
+<!-- total_fit_powexp <- fit_gpr(list(sw_distances, marginal_distances[[1]], marginal_distances[[2]]), -->
+<!--   training_idx = seq_len(N_train), -->
+<!--   test_idx = N_train + seq_len(N_test), -->
+<!--   y_train = angles[seq_len(N_train)], -->
+<!--   y_test = angles[N_train + seq_len(N_test)], -->
+<!--   kernels = c("powexp", "powexp", "powexp"), -->
+<!--   params = c(1.2, 1, 0.8), -->
+<!--   runs = 50L, cores = 2L) -->
+<!-- str(total_fit_powexp) -->
+<!-- ``` -->
+
+<!-- Different kernels can be applied to different distances matrices: -->
+
+<!-- ```{r} -->
+<!-- total_fit_mixed <- fit_gpr(list(sw_distances, marginal_distances[[1]], marginal_distances[[2]]), -->
+<!--   training_idx = seq_len(N_train), -->
+<!--   test_idx = N_train + seq_len(N_test), -->
+<!--   y_train = angles[seq_len(N_train)], -->
+<!--   y_test = angles[N_train + seq_len(N_test)], -->
+<!--   kernels = c("matern", "powexp", "rbf"), -->
+<!--   params = c(2.8, 0.9, NA), -->
+<!--   runs = 50L, cores = 2L) -->
+<!-- str(total_fit_mixed) -->
+<!-- ``` -->
+
+
+
+<!-- Finally, a GPR's **negative log predictive density** (NLPD) for some test data -->
+<!-- can be obtained like so: -->
+<!-- ```{r} -->
+<!-- nlpd_gpr(total_fit_mixed, angles[N_train + seq_len(N_test)]) -->
+<!-- ``` -->
+
+<!-- The warning message occurs because we didn't compute the distances among the -->
+<!-- test inputs themselves. As a result, the kernel matrices don't specify -->
+<!-- the covariance among the test inputs, and the NLPD assumes that they are zero. -->
+<!-- If you remove the `test_idx` parameter setting when running `compute_all_distances()` -->
+<!-- and refit the models, this warning will disappear. -->

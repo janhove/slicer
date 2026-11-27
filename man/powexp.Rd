@@ -4,7 +4,7 @@
 \alias{powexp}
 \title{Power Exponential Kernel}
 \usage{
-powexp(D, length_scale = 1, variance = 1, expon = 1, squared = TRUE)
+powexp(D, length_scale = 1, variance = 1, expon = 1, squared = FALSE)
 }
 \arguments{
 \item{D}{Matrix with pairwise (possibly squared) distances.}
@@ -15,8 +15,8 @@ powexp(D, length_scale = 1, variance = 1, expon = 1, squared = TRUE)
 
 \item{expon}{Exponent. Defaults to 1.}
 
-\item{squared}{If \code{TRUE} (default), \code{D} is assumed to contain squared
-distances. Set to \code{FALSE} if this is not the case.}
+\item{squared}{If \code{TRUE}, \code{D} is assumed to contain squared
+distances. Defaults to \code{FALSE}.}
 }
 \value{
 A kernel matrix with the same dimensions as \code{D}.
@@ -28,7 +28,7 @@ Builds a power exponential kernel from a distance matrix.
 M <- rbind(c(0, 2, 1),
            c(2, 0, 2.5),
            c(1, 2.5, 0))
-powexp(M, expon = 0.5, squared = FALSE)
-powexp(M, expon = 1, squared = FALSE)
-powexp(M, expon = 2, squared = FALSE)
+powexp(M, expon = 0.5)
+powexp(M, expon = 1)
+powexp(M, expon = 2)
 }

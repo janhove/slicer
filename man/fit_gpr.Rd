@@ -5,7 +5,7 @@
 \title{Gaussian Process Fitting to Test Data with Tuned Hyperparameters}
 \usage{
 fit_gpr(
-  D2,
+  D,
   training_idx,
   test_idx,
   y_train,
@@ -14,6 +14,7 @@ fit_gpr(
   use_gradient = TRUE,
   kernels = "rbf",
   params = NA,
+  squared = FALSE,
   runs = 10L,
   cores = 1L,
   verbose = TRUE,
@@ -21,11 +22,11 @@ fit_gpr(
 )
 }
 \arguments{
-\item{D2}{A matrix, or a list of matrices, containing squared pairwise distances between all objects.}
+\item{D}{A matrix, or a list of matrices, containing pairwise distances between all objects.}
 
-\item{training_idx}{A vector with the row (and column) numbers corresponding to the training entries in \code{D2}.}
+\item{training_idx}{A vector with the row (and column) numbers corresponding to the training entries in \code{D}.}
 
-\item{test_idx}{A vector with the row (and column) numbers corresponding to the test entries in \code{D2}.}
+\item{test_idx}{A vector with the row (and column) numbers corresponding to the test entries in \code{D}.}
 
 \item{y_train}{A vector with the training outcomes.}
 
@@ -40,6 +41,8 @@ Ignored when non-RBF kernels are used.}
 \item{kernels}{A vector with kernels (\verb{"rbf", "powexp", "matern"}).}
 
 \item{params}{Kernel parameters (smoothness for Matern; exponent for power exponential; ignored for RBF).}
+
+\item{squared}{Set to \code{TRUE} if the distances in \code{D} are squared. Defaults to \code{FALSE}.}
 
 \item{runs}{Number of independent attempts to find a minimum when optimising the hyperparameters.}
 
@@ -70,10 +73,11 @@ x_test1  <- runif(N2, -pi, pi)
 x_test2  <- runif(N2, 0, 1)
 y_train <- x_train2 * plogis(x_train1) * cos(x_train1)
 y_test <- x_test2 * plogis(x_test1) * cos(x_test1)
-D2_1 <- outer(c(x_train1, x_test1), c(x_train1, x_test1), "-")^2
-D2_2 <- outer(c(x_train2, x_test2), c(x_train2, x_test2), "-")^2
+D1 <- outer(c(x_train1, x_test1), c(x_train1, x_test1), "-") |> abs()
+D2 <- outer(c(x_train2, x_test2), c(x_train2, x_test2), "-") |> abs()
+
 # Single core
-fit <- fit_gpr(list(D2_1, D2_2), seq_len(N1), N1 + seq_len(N2),
+fit <- fit_gpr(list(D1, D2), seq_len(N1), N1 + seq_len(N2),
   y_train, y_test, runs = 50)
 plot(y_test, fit$test_predictions)
 abline(a = 0, b = 1, lty = 1)
@@ -81,8 +85,9 @@ segments(x0 = y_test,
   y0 = fit$test_predictions - 2 * sqrt(diag(fit$test_variance)),
   y1 = fit$test_predictions + 2 * sqrt(diag(fit$test_variance)), lty = 2)
 fit
+
 # Multiple cores
-fit <- fit_gpr(list(D2_1, D2_2), seq_len(N1), N1 + seq_len(N2),
+fit <- fit_gpr(list(D1, D2), seq_len(N1), N1 + seq_len(N2),
  y_train, y_test, runs = 50, cores = 2L)
 fit
 
@@ -93,8 +98,8 @@ x_train <- seq(-pi, pi, length.out = N1)
 x_test  <- runif(N2, -pi, pi)
 y_train <- x_train * plogis(x_train) * cos(x_train) + rnorm(N1, sd = 0.5)
 y_test <- x_test * plogis(x_test) * cos(x_test)
-D2 <- outer(c(x_train, x_test), c(x_train, x_test), "-")^2
-fit <- fit_gpr(D2, seq_len(N1), N1 + seq_len(N2), y_train, y_test, runs = 50L)
+D <- outer(c(x_train, x_test), c(x_train, x_test), "-") |> abs()
+fit <- fit_gpr(D, seq_len(N1), N1 + seq_len(N2), y_train, y_test, runs = 50L)
 curve(x * plogis(x) * cos(x), -pi, pi,
   ylim = range(
     c(y_train, fit$test_predictions + 2 * sqrt(diag(fit$test_variance)),
