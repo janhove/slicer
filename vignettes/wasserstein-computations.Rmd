@@ -1,5 +1,5 @@
 ---
-title: "Computing Wasserstein and sliced Wasserstein distances"
+title: "How to compute Wasserstein and sliced Wasserstein distances"
 output:
   rmarkdown::html_vignette:
     fig_width: 7
@@ -7,7 +7,7 @@ output:
     fig_align: "center"
     dev: svg
 vignette: >
-  %\VignetteIndexEntry{(Sliced) Wasserstein - Gaussian process regression workflow}           
+  %\VignetteIndexEntry{How to compute Wasserstein and sliced Wasserstein distances}           
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
