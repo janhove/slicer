@@ -105,6 +105,8 @@ powexp_multiple <- function(D_list, length_scales, variances, expons,
 #' Builds kernel matrices from a list of distances matrices and computes
 #' their sum.
 #'
+#' @noRd
+#'
 #' @param D_list A list of matrices with pairwise (possibly squared) distances.
 #' @param length_scales A vector of length-scale parameters.
 #' @param variances A vector of kernel variance parameters.
@@ -116,7 +118,6 @@ powexp_multiple <- function(D_list, length_scales, variances, expons,
 #'    contain raw distances.
 #'
 #' @return A kernel matrix with the same dimensions as the matrices in `D_list`.
-#' @export
 #'
 #' @examples
 #' M1 <- rbind(c(0, 2, 1),
