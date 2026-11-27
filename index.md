@@ -19,6 +19,10 @@ pak::pak("janhove/slicer")
 
 ## Use
 
-Please refer to the vignette for a brief tutorial on how to compute
-(sliced) Wasserstein distances and use them in a Gaussian process
-regression workflow.
+Please refer to the vignettes.
+
+## To do
+
+- Unit testing.
+- Vignette explaining (sliced) Wasserstein kernels and their use in
+  Gaussian process regression.

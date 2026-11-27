@@ -6,7 +6,7 @@ matrix.
 ## Usage
 
 ``` r
-rbf(D, length_scale = 1, variance = 1, squared = TRUE)
+rbf(D, length_scale = 1, variance = 1, squared = FALSE)
 ```
 
 ## Arguments
@@ -25,8 +25,8 @@ rbf(D, length_scale = 1, variance = 1, squared = TRUE)
 
 - squared:
 
-  If `TRUE` (default), `D` is assumed to contain squared distances. Set
-  to `FALSE` if this is not the case.
+  If `TRUE`, `D` is assumed to contain squared distances. The default is
+  `FALSE`.
 
 ## Value
 
@@ -38,7 +38,7 @@ A kernel matrix with the same dimensions as `D`.
 M <- rbind(c(0, 2, 1),
            c(2, 0, 2.5),
            c(1, 2.5, 0))
-rbf(M, squared = FALSE)
+rbf(M)
 #>           [,1]       [,2]       [,3]
 #> [1,] 1.0000000 0.13533528 0.60653066
 #> [2,] 0.1353353 1.00000000 0.04393693

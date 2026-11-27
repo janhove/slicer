@@ -51,25 +51,23 @@ x_train <- seq(-pi, pi, length.out = N1)
 x_test  <- runif(N2, -pi, pi)
 y_train <- x_train * plogis(x_train) * cos(x_train) + rnorm(N1, sd = 0.5)
 y_test <- x_test * plogis(x_test) * cos(x_test)
-D2 <- outer(c(x_train, x_test), c(x_train, x_test), "-")^2
+D2 <- outer(c(x_train, x_test), c(x_train, x_test), "-") |> abs()
 fit <- fit_gpr(D2, seq_len(N1), N1 + seq_len(N2), y_train, y_test,
                runs = 20L, cores = 1)
 #> Hyperparameter search 1 of 20.
 #> Optimum set at 65.1049.
 #> Hyperparameter search 2 of 20.
-#> Current optimum improved from 65.1049 to 65.1049.
 #> Hyperparameter search 3 of 20.
 #> Hyperparameter search 4 of 20.
 #> Hyperparameter search 5 of 20.
 #> Hyperparameter search 6 of 20.
 #> Hyperparameter search 7 of 20.
-#> Current optimum improved from 65.1049 to 65.1049.
 #> Hyperparameter search 8 of 20.
 #> Hyperparameter search 9 of 20.
 #> Hyperparameter search 10 of 20.
+#> Current optimum improved from 65.1049 to 65.1049.
 #> Hyperparameter search 11 of 20.
 #> Hyperparameter search 12 of 20.
-#> Current optimum improved from 65.1049 to 65.1049.
 #> Hyperparameter search 13 of 20.
 #> Hyperparameter search 14 of 20.
 #> Hyperparameter search 15 of 20.

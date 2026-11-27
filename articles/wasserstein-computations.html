@@ -32,7 +32,7 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/sliced-wasserstein-workflow.html">(Sliced) Wasserstein - Gaussian process regression workflow</a></li>
+<li><a class="dropdown-item" href="../articles/sliced-wasserstein-workflow.html">(Sliced) Wasserstein kernels and Gaussian process regression</a></li>
     <li><a class="dropdown-item" href="../articles/wasserstein-computations.html">How to compute Wasserstein and sliced Wasserstein distances</a></li>
   </ul>
 </li>
@@ -87,7 +87,11 @@ seed.</p>
 and</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Q</mi><mo>=</mo><mfrac><mn>1</mn><mi>n</mi></mfrac><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><msub><mi>δ</mi><msub><mi>y</mi><mi>j</mi></msub></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">Q = \frac{1}{n}\sum_{j=1}^n \delta_{y_j},</annotation></semantics></math></p>
 <p>we want to compute the Wasserstein distance of order
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>∈</mo><mo stretchy="false" form="prefix">[</mo><mn>1</mn><mo>,</mo><mi>∞</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">p \in [1, \infty)</annotation></semantics></math>.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>∈</mo><mo stretchy="false" form="prefix">[</mo><mn>1</mn><mo>,</mo><mi>∞</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">p \in [1, \infty)</annotation></semantics></math>
+between
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>P</mi><annotation encoding="application/x-tex">P</annotation></semantics></math>
+and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Q</mi><annotation encoding="application/x-tex">Q</annotation></semantics></math>.
 This is defined as</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>𝐖</mi><mi>p</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>P</mi><mo>,</mo><mi>Q</mi><mo stretchy="false" form="postfix">)</mo><mo>:=</mo><munder><mi mathvariant="normal">min</mi><mtable><mtr><mtd columnalign="center" style="text-align: center"><mrow><mi>X</mi><mo>∼</mo><mi>P</mi></mrow></mtd></mtr><mtr><mtd columnalign="center" style="text-align: center"><mrow><mi>Y</mi><mo>∼</mo><mi>Q</mi></mrow></mtd></mtr></mtable></munder><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝔼</mi><mo stretchy="false" form="prefix">|</mo><mi>X</mi><mo>−</mo><mi>Y</mi><msup><mo stretchy="false" form="prefix">|</mo><mi>p</mi></msup><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mn>1</mn><mi>/</mi><mi>p</mi></mrow></msup><mi>.</mi></mrow><annotation encoding="application/x-tex">\mathbf{W}_p(P, Q) := \min_{\substack{X \sim P \\ Y \sim Q}} \left(\mathbb{E}|X - Y|^p\right)^{1/p}.</annotation></semantics></math></p>
 <p>The distributions
@@ -120,47 +124,34 @@ speed-up.</p>
 The function <code><a href="../reference/compute_all_distances.html">compute_all_distances()</a></code> takes a list of
 empirical distributions represented as vectors (or matrices). If we
 don’t specify anything to the contrary, it will assume that the input
-distributions are all univariate. By default, it outputs the pairwise
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>-Wasserstein
-distances <em>raised to the
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>-th_power</em>.
-(The reason is that, in practice, we will often ) Also by default,
+distributions are all univariate. By default, Wasserstein distances of
+order
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>=</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">p = 2</annotation></semantics></math>
-is used.</p>
+are computed.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">P1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">14</span>, <span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="va">P2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Cauchy.html" class="external-link">rcauchy</a></span><span class="op">(</span><span class="fl">39</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">P1</span> <span class="op">&lt;-</span> <span class="va">P</span></span>
+<span><span class="va">P2</span> <span class="op">&lt;-</span> <span class="va">Q</span></span>
 <span><span class="va">P3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">41</span><span class="op">)</span></span>
 <span><span class="va">P4</span> <span class="op">&lt;-</span> <span class="fl">2</span><span class="op">*</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">rbinom</a></span><span class="op">(</span><span class="fl">47</span>, <span class="fl">1</span>, <span class="fl">0.4</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1.5</span><span class="op">)</span></span>
 <span><span class="va">pw_dists</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/compute_all_distances.html">compute_all_distances</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">P1</span>, <span class="va">P2</span>, <span class="va">P3</span>, <span class="va">P4</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; No projection directions (thetas) supplied. Assuming univariate distributions.</span></span>
 <span><span class="va">pw_dists</span></span>
-<span><span class="co">#&gt;            [,1]     [,2]       [,3]      [,4]</span></span>
-<span><span class="co">#&gt; [1,]  0.0000000 13.96197  0.3926126  4.010920</span></span>
-<span><span class="co">#&gt; [2,] 13.9619674  0.00000 11.3016628 18.016477</span></span>
-<span><span class="co">#&gt; [3,]  0.3926126 11.30166  0.0000000  4.670274</span></span>
-<span><span class="co">#&gt; [4,]  4.0109200 18.01648  4.6702741  0.000000</span></span></code></pre></div>
-<p>The actual
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐖</mi><mn>2</mn></msub><annotation encoding="application/x-tex">\mathbf{W}_2</annotation></semantics></math>
-distances can now be obtain by taking the square root:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="va">pw_dists</span><span class="op">)</span></span>
-<span><span class="co">#&gt;           [,1]     [,2]      [,3]     [,4]</span></span>
-<span><span class="co">#&gt; [1,] 0.0000000 3.736572 0.6265881 2.002728</span></span>
-<span><span class="co">#&gt; [2,] 3.7365716 0.000000 3.3617946 4.244582</span></span>
-<span><span class="co">#&gt; [3,] 0.6265881 3.361795 0.0000000 2.161082</span></span>
-<span><span class="co">#&gt; [4,] 2.0027281 4.244582 2.1610817 0.000000</span></span></code></pre></div>
+<span><span class="co">#&gt;          [,1]     [,2]      [,3]      [,4]</span></span>
+<span><span class="co">#&gt; [1,]  0.00000 12.35423 12.963304 15.023061</span></span>
+<span><span class="co">#&gt; [2,] 12.35423  0.00000 19.953468 21.676767</span></span>
+<span><span class="co">#&gt; [3,] 12.96330 19.95347  0.000000  2.252589</span></span>
+<span><span class="co">#&gt; [4,] 15.02306 21.67677  2.252589  0.000000</span></span></code></pre></div>
 <p>Different orders
 (<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>)
 can be specified, too:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/compute_all_distances.html">compute_all_distances</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">P1</span>, <span class="va">P2</span>, <span class="va">P3</span>, <span class="va">P4</span><span class="op">)</span>, p <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="co">#&gt; No projection directions (thetas) supplied. Assuming univariate distributions.</span></span>
-<span><span class="co">#&gt;           [,1]     [,2]      [,3]     [,4]</span></span>
-<span><span class="co">#&gt; [1,] 0.0000000 1.412198 0.4530223 1.896643</span></span>
-<span><span class="co">#&gt; [2,] 1.4121982 0.000000 1.2034373 2.483512</span></span>
-<span><span class="co">#&gt; [3,] 0.4530223 1.203437 0.0000000 2.075587</span></span>
-<span><span class="co">#&gt; [4,] 1.8966435 2.483512 2.0755873 0.000000</span></span></code></pre></div>
+<span><span class="co">#&gt;           [,1]      [,2]      [,3]      [,4]</span></span>
+<span><span class="co">#&gt; [1,]  0.000000  7.530863 12.059093 14.045166</span></span>
+<span><span class="co">#&gt; [2,]  7.530863  0.000000 14.134749 16.180809</span></span>
+<span><span class="co">#&gt; [3,] 12.059093 14.134749  0.000000  2.094052</span></span>
+<span><span class="co">#&gt; [4,] 14.045166 16.180809  2.094052  0.000000</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="wasserstein-distances-between-projected-multivariate-distributions">Wasserstein distances between projected multivariate
@@ -230,7 +221,7 @@ of samples from different Gaussian mixtures with a randomly chosen
 number of components
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>c</mi><mspace width="0.222em"></mspace><mtext mathvariant="normal">Unif</mtext><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>,</mo><mn>2</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>C</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">c ~ \textrm{Unif}(1, 2, \dots, C)</annotation></semantics></math>
 using the following code.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rgmm_random</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">n</span>, <span class="va">C</span>, <span class="va">d</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample.int</a></span><span class="op">(</span><span class="va">C</span>, <span class="fl">1</span><span class="op">)</span> </span>
 <span>  <span class="va">mu</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">p</span> <span class="op">*</span> <span class="va">d</span>, <span class="op">-</span><span class="fl">5</span>, <span class="fl">5</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="va">p</span>, ncol <span class="op">=</span> <span class="va">d</span><span class="op">)</span></span>
@@ -265,13 +256,9 @@ from Gaussian mixture models with between 1 and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mo>=</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">C = 4</annotation></semantics></math>
 mixture components. (It is not necessary for the distributions to be
 supported on the same number of points.)</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rgmms</span> <span class="op">&lt;-</span> <span class="fu">rgmm_random_N</span><span class="op">(</span>N <span class="op">=</span> <span class="fl">6</span>, n <span class="op">=</span> <span class="fl">500</span>, C <span class="op">=</span> <span class="fl">4</span>, d <span class="op">=</span> <span class="fl">8</span><span class="op">)</span></span>
-<span><span class="va">distributions</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">rgmms</span>, <span class="va">`[[`</span>, <span class="st">"distribution"</span><span class="op">)</span> </span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">is.list</a></span><span class="op">(</span><span class="va">distributions</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] TRUE</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">distributions</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 6</span></span></code></pre></div>
+<span><span class="va">distributions</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">rgmms</span>, <span class="va">`[[`</span>, <span class="st">"distribution"</span><span class="op">)</span> </span></code></pre></div>
 <p>If we want to compute the pairwise Wasserstein distances between the
 corresponding margins (i.e., after projecting the distributions onto
 each of the cardinal axes) as well as those between the projections
@@ -282,7 +269,7 @@ then we put the canonical basis vectors
 as well as
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>θ</mi><mn>9</mn></msub><annotation encoding="application/x-tex">\theta_9</annotation></semantics></math>
 into a matrix:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">Theta</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">8</span><span class="op">)</span>,</span>
 <span>  <span class="fl">1</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span></span>
@@ -300,34 +287,35 @@ into a matrix:</p>
 <span><span class="co">#&gt;  [9,]    0 0.5773503    0 0.5773503    0    0    0 0.5773503</span></span></code></pre></div>
 <p>The squared 2-Wasserstein distances between the projections onto each
 row of <code>Theta</code> can now be computed as follows:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">all_dists</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/compute_all_distances.html">compute_all_distances</a></span><span class="op">(</span><span class="va">distributions</span>, <span class="va">Theta</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Projecting...</span></span>
 <span><span class="co">#&gt; Computing distances...</span></span>
 <span><span class="co">#&gt;   |                                                                              |                                                                      |   0%  |                                                                              |========                                                              |  11%  |                                                                              |================                                                      |  22%  |                                                                              |=======================                                               |  33%  |                                                                              |===============================                                       |  44%  |                                                                              |=======================================                               |  56%  |                                                                              |===============================================                       |  67%  |                                                                              |======================================================                |  78%  |                                                                              |==============================================================        |  89%  |                                                                              |======================================================================| 100%</span></span></code></pre></div>
 <p>The object <code>all_dists</code> is a list with 9 elements (the
-number of projection directions), each of which contains squared
-2-Wasserstein distances:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+number of projection directions), each of which contains Wasserstein
+distances of order
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>=</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">p = 2</annotation></semantics></math>:</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Along fourth canonical basis vector</span></span>
 <span><span class="va">all_dists</span><span class="op">[[</span><span class="fl">4</span><span class="op">]</span><span class="op">]</span></span>
-<span><span class="co">#&gt;           [,1]      [,2]      [,3]      [,4]      [,5]      [,6]</span></span>
-<span><span class="co">#&gt; [1,]  0.000000 14.404932  7.581264 31.425098 46.213927  3.357988</span></span>
-<span><span class="co">#&gt; [2,] 14.404932  0.000000  3.461265  4.851487  9.977685  4.144342</span></span>
-<span><span class="co">#&gt; [3,]  7.581264  3.461265  0.000000  9.053734 17.962454  1.483038</span></span>
-<span><span class="co">#&gt; [4,] 31.425098  4.851487  9.053734  0.000000  1.942366 14.662450</span></span>
-<span><span class="co">#&gt; [5,] 46.213927  9.977685 17.962454  1.942366  0.000000 24.906594</span></span>
-<span><span class="co">#&gt; [6,]  3.357988  4.144342  1.483038 14.662450 24.906594  0.000000</span></span>
+<span><span class="co">#&gt;          [,1]     [,2]      [,3]     [,4]      [,5]     [,6]</span></span>
+<span><span class="co">#&gt; [1,] 0.000000 2.511518 2.3869818 3.511217 2.5519653 1.079536</span></span>
+<span><span class="co">#&gt; [2,] 2.511518 0.000000 4.1255069 5.956054 4.6548244 3.089585</span></span>
+<span><span class="co">#&gt; [3,] 2.386982 4.125507 0.0000000 2.837708 0.9174726 1.379150</span></span>
+<span><span class="co">#&gt; [4,] 3.511217 5.956054 2.8377080 0.000000 2.0281511 3.005094</span></span>
+<span><span class="co">#&gt; [5,] 2.551965 4.654824 0.9174726 2.028151 0.0000000 1.615499</span></span>
+<span><span class="co">#&gt; [6,] 1.079536 3.089585 1.3791504 3.005094 1.6154990 0.000000</span></span>
 <span></span>
 <span><span class="co"># Along theta_9</span></span>
 <span><span class="va">all_dists</span><span class="op">[[</span><span class="fl">9</span><span class="op">]</span><span class="op">]</span></span>
-<span><span class="co">#&gt;           [,1]       [,2]       [,3]       [,4]      [,5]       [,6]</span></span>
-<span><span class="co">#&gt; [1,]  0.000000  3.0972480  6.9837456  5.0764543 30.675007  4.5659659</span></span>
-<span><span class="co">#&gt; [2,]  3.097248  0.0000000 16.5037894 13.4191350 49.443632  0.2261069</span></span>
-<span><span class="co">#&gt; [3,]  6.983746 16.5037894  0.0000000  0.2240779  9.147574 19.4126790</span></span>
-<span><span class="co">#&gt; [4,]  5.076454 13.4191350  0.2240779  0.0000000 11.465228 16.1293612</span></span>
-<span><span class="co">#&gt; [5,] 30.675007 49.4436324  9.1475739 11.4652281  0.000000 54.4684200</span></span>
-<span><span class="co">#&gt; [6,]  4.565966  0.2261069 19.4126790 16.1293612 54.468420  0.0000000</span></span></code></pre></div>
+<span><span class="co">#&gt;          [,1]     [,2]     [,3]     [,4]     [,5]     [,6]</span></span>
+<span><span class="co">#&gt; [1,] 0.000000 2.135175 1.975174 4.061653 2.578371 1.765189</span></span>
+<span><span class="co">#&gt; [2,] 2.135175 0.000000 2.176853 5.892668 3.707649 2.853606</span></span>
+<span><span class="co">#&gt; [3,] 1.975174 2.176853 0.000000 4.348005 1.969027 1.420678</span></span>
+<span><span class="co">#&gt; [4,] 4.061653 5.892668 4.348005 0.000000 2.737301 3.201242</span></span>
+<span><span class="co">#&gt; [5,] 2.578371 3.707649 1.969027 2.737301 0.000000 1.043625</span></span>
+<span><span class="co">#&gt; [6,] 1.765189 2.853606 1.420678 3.201242 1.043625 0.000000</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="sliced-wasserstein-distances">Sliced Wasserstein distances<a class="anchor" aria-label="anchor" href="#sliced-wasserstein-distances"></a>
@@ -339,49 +327,47 @@ empirical probability distributions, we generate independent
 uniformly at random from the unit sphere in
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>ℝ</mi><mi>d</mi></msup><annotation encoding="application/x-tex">\mathbb{R}^d</annotation></semantics></math>.
 The function <code><a href="../reference/generate_directions.html">generate_directions()</a></code> takes care of this:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">Theta</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generate_directions.html">generate_directions</a></span><span class="op">(</span>L <span class="op">=</span> <span class="fl">50</span>, d <span class="op">=</span> <span class="fl">8</span><span class="op">)</span></span></code></pre></div>
 <p>We again use <code><a href="../reference/compute_all_distances.html">compute_all_distances()</a></code> but set the
-<code>keep_projections</code> parameter to <code>FALSE</code>. The
-function now works just as before, i.e., it computes
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>𝐖</mi><mi>p</mi><mi>p</mi></msubsup><annotation encoding="application/x-tex">\mathbf{W}_p^p</annotation></semantics></math>
-values between the projected distributions, but it now averages the
+<code>average</code> parameter to <code>TRUE</code>. The function now
+averages the
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>L</mi><annotation encoding="application/x-tex">L</annotation></semantics></math>
-values for each distribution pair. By default, squared sliced
-Wasserstein distances of order
+Wasserstein distances computed for each pair of distributions like
+so:</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mover><mrow><mi>𝐒</mi><mi>𝐖</mi></mrow><mo accent="true">̂</mo></mover><mi>p</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>P</mi><mi>i</mi></msub><mo>,</mo><msub><mi>P</mi><mi>j</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mn>1</mn><mi>L</mi></mfrac><munderover><mo>∑</mo><mrow><mi>ℓ</mi><mo>=</mo><mn>1</mn></mrow><mi>L</mi></munderover><msubsup><mi>𝐖</mi><mi>p</mi><mi>p</mi></msubsup><mo stretchy="false" form="prefix">(</mo><msubsup><msub><mi>θ</mi><mi>ℓ</mi></msub><mi>#</mi><mo>⋆</mo></msubsup><msub><mi>P</mi><mi>i</mi></msub><mo>,</mo><msubsup><msub><mi>θ</mi><mi>ℓ</mi></msub><mi>#</mi><mo>⋆</mo></msubsup><msub><mi>P</mi><mi>j</mi></msub><mo stretchy="false" form="postfix">)</mo><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mn>1</mn><mi>/</mi><mi>p</mi></mrow></msup><mi>.</mi></mrow><annotation encoding="application/x-tex">\widehat{\mathbf{SW}}_p(P_i, P_j) = \left(\frac{1}{L}\sum_{\ell = 1}^L \mathbf{W}^p_p({\theta_{\ell}}_{\#}^{\star} P_i, {\theta_{\ell}}_{\#}^{\star} P_j)\right)^{1/p}.</annotation></semantics></math>
+By default, squared sliced Wasserstein distances of order
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>=</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">p = 2</annotation></semantics></math>
 are output:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sw_dists</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/compute_all_distances.html">compute_all_distances</a></span><span class="op">(</span><span class="va">distributions</span>, <span class="va">Theta</span>, </span>
-<span>                                  keep_projections <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sw_dists</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/compute_all_distances.html">compute_all_distances</a></span><span class="op">(</span><span class="va">distributions</span>, <span class="va">Theta</span>, average <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Projecting...</span></span>
 <span><span class="co">#&gt; Computing distances...</span></span>
 <span><span class="co">#&gt;   |                                                                              |                                                                      |   0%  |                                                                              |=                                                                     |   2%  |                                                                              |===                                                                   |   4%  |                                                                              |====                                                                  |   6%  |                                                                              |======                                                                |   8%  |                                                                              |=======                                                               |  10%  |                                                                              |========                                                              |  12%  |                                                                              |==========                                                            |  14%  |                                                                              |===========                                                           |  16%  |                                                                              |=============                                                         |  18%  |                                                                              |==============                                                        |  20%  |                                                                              |===============                                                       |  22%  |                                                                              |=================                                                     |  24%  |                                                                              |==================                                                    |  26%  |                                                                              |====================                                                  |  28%  |                                                                              |=====================                                                 |  30%  |                                                                              |======================                                                |  32%  |                                                                              |========================                                              |  34%  |                                                                              |=========================                                             |  36%  |                                                                              |===========================                                           |  38%  |                                                                              |============================                                          |  40%  |                                                                              |=============================                                         |  42%  |                                                                              |===============================                                       |  44%  |                                                                              |================================                                      |  46%  |                                                                              |==================================                                    |  48%  |                                                                              |===================================                                   |  50%  |                                                                              |====================================                                  |  52%  |                                                                              |======================================                                |  54%  |                                                                              |=======================================                               |  56%  |                                                                              |=========================================                             |  58%  |                                                                              |==========================================                            |  60%  |                                                                              |===========================================                           |  62%  |                                                                              |=============================================                         |  64%  |                                                                              |==============================================                        |  66%  |                                                                              |================================================                      |  68%  |                                                                              |=================================================                     |  70%  |                                                                              |==================================================                    |  72%  |                                                                              |====================================================                  |  74%  |                                                                              |=====================================================                 |  76%  |                                                                              |=======================================================               |  78%  |                                                                              |========================================================              |  80%  |                                                                              |=========================================================             |  82%  |                                                                              |===========================================================           |  84%  |                                                                              |============================================================          |  86%  |                                                                              |==============================================================        |  88%  |                                                                              |===============================================================       |  90%  |                                                                              |================================================================      |  92%  |                                                                              |==================================================================    |  94%  |                                                                              |===================================================================   |  96%  |                                                                              |===================================================================== |  98%  |                                                                              |======================================================================| 100%</span></span>
 <span><span class="va">sw_dists</span></span>
-<span><span class="co">#&gt;           [,1]      [,2]      [,3]      [,4]      [,5]      [,6]</span></span>
-<span><span class="co">#&gt; [1,]  0.000000 10.025981 12.103010  9.053233 12.079050 11.420344</span></span>
-<span><span class="co">#&gt; [2,] 10.025981  0.000000  8.685864  6.618335  8.985870  8.797133</span></span>
-<span><span class="co">#&gt; [3,] 12.103010  8.685864  0.000000  5.966392  6.935964 12.782313</span></span>
-<span><span class="co">#&gt; [4,]  9.053233  6.618335  5.966392  0.000000  6.134122 10.016689</span></span>
-<span><span class="co">#&gt; [5,] 12.079050  8.985870  6.935964  6.134122  0.000000 18.033213</span></span>
-<span><span class="co">#&gt; [6,] 11.420344  8.797133 12.782313 10.016689 18.033213  0.000000</span></span></code></pre></div>
+<span><span class="co">#&gt;          [,1]     [,2]     [,3]     [,4]     [,5]     [,6]</span></span>
+<span><span class="co">#&gt; [1,] 0.000000 2.225677 2.601511 2.679255 2.085345 3.394862</span></span>
+<span><span class="co">#&gt; [2,] 2.225677 0.000000 3.108849 3.218715 2.279165 2.964327</span></span>
+<span><span class="co">#&gt; [3,] 2.601511 3.108849 0.000000 3.201459 2.690495 4.084576</span></span>
+<span><span class="co">#&gt; [4,] 2.679255 3.218715 3.201459 0.000000 2.424931 4.234922</span></span>
+<span><span class="co">#&gt; [5,] 2.085345 2.279165 2.690495 2.424931 0.000000 2.595893</span></span>
+<span><span class="co">#&gt; [6,] 3.394862 2.964327 4.084576 4.234922 2.595893 0.000000</span></span></code></pre></div>
 <p>Of course, sliced Wasserstein distances of other orders can be
-computed. This outputs the (raw) sliced Wasserstein distances of order
+computed. This outputs the sliced Wasserstein distances of order
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">p = 1</annotation></semantics></math>:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sw_dists_1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/compute_all_distances.html">compute_all_distances</a></span><span class="op">(</span><span class="va">distributions</span>, <span class="va">Theta</span>, p <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>                                    keep_projections <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sw_dists_1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/compute_all_distances.html">compute_all_distances</a></span><span class="op">(</span><span class="va">distributions</span>, <span class="va">Theta</span>, p <span class="op">=</span> <span class="fl">1</span>, average <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Projecting...</span></span>
 <span><span class="co">#&gt; Computing distances...</span></span>
 <span><span class="co">#&gt;   |                                                                              |                                                                      |   0%  |                                                                              |=                                                                     |   2%  |                                                                              |===                                                                   |   4%  |                                                                              |====                                                                  |   6%  |                                                                              |======                                                                |   8%  |                                                                              |=======                                                               |  10%  |                                                                              |========                                                              |  12%  |                                                                              |==========                                                            |  14%  |                                                                              |===========                                                           |  16%  |                                                                              |=============                                                         |  18%  |                                                                              |==============                                                        |  20%  |                                                                              |===============                                                       |  22%  |                                                                              |=================                                                     |  24%  |                                                                              |==================                                                    |  26%  |                                                                              |====================                                                  |  28%  |                                                                              |=====================                                                 |  30%  |                                                                              |======================                                                |  32%  |                                                                              |========================                                              |  34%  |                                                                              |=========================                                             |  36%  |                                                                              |===========================                                           |  38%  |                                                                              |============================                                          |  40%  |                                                                              |=============================                                         |  42%  |                                                                              |===============================                                       |  44%  |                                                                              |================================                                      |  46%  |                                                                              |==================================                                    |  48%  |                                                                              |===================================                                   |  50%  |                                                                              |====================================                                  |  52%  |                                                                              |======================================                                |  54%  |                                                                              |=======================================                               |  56%  |                                                                              |=========================================                             |  58%  |                                                                              |==========================================                            |  60%  |                                                                              |===========================================                           |  62%  |                                                                              |=============================================                         |  64%  |                                                                              |==============================================                        |  66%  |                                                                              |================================================                      |  68%  |                                                                              |=================================================                     |  70%  |                                                                              |==================================================                    |  72%  |                                                                              |====================================================                  |  74%  |                                                                              |=====================================================                 |  76%  |                                                                              |=======================================================               |  78%  |                                                                              |========================================================              |  80%  |                                                                              |=========================================================             |  82%  |                                                                              |===========================================================           |  84%  |                                                                              |============================================================          |  86%  |                                                                              |==============================================================        |  88%  |                                                                              |===============================================================       |  90%  |                                                                              |================================================================      |  92%  |                                                                              |==================================================================    |  94%  |                                                                              |===================================================================   |  96%  |                                                                              |===================================================================== |  98%  |                                                                              |======================================================================| 100%</span></span>
 <span><span class="va">sw_dists_1</span></span>
 <span><span class="co">#&gt;          [,1]     [,2]     [,3]     [,4]     [,5]     [,6]</span></span>
-<span><span class="co">#&gt; [1,] 0.000000 2.538208 2.944338 2.546741 2.749255 2.747485</span></span>
-<span><span class="co">#&gt; [2,] 2.538208 0.000000 2.400416 2.048687 2.595333 2.480271</span></span>
-<span><span class="co">#&gt; [3,] 2.944338 2.400416 0.000000 1.980011 2.227120 2.914414</span></span>
-<span><span class="co">#&gt; [4,] 2.546741 2.048687 1.980011 0.000000 2.015000 2.596229</span></span>
-<span><span class="co">#&gt; [5,] 2.749255 2.595333 2.227120 2.015000 0.000000 3.553161</span></span>
-<span><span class="co">#&gt; [6,] 2.747485 2.480271 2.914414 2.596229 3.553161 0.000000</span></span></code></pre></div>
+<span><span class="co">#&gt; [1,] 0.000000 1.845777 2.059437 2.154981 1.692770 2.736052</span></span>
+<span><span class="co">#&gt; [2,] 1.845777 0.000000 2.523656 2.570453 1.860875 2.516199</span></span>
+<span><span class="co">#&gt; [3,] 2.059437 2.523656 0.000000 2.645451 2.270762 3.513010</span></span>
+<span><span class="co">#&gt; [4,] 2.154981 2.570453 2.645451 0.000000 1.881794 3.427599</span></span>
+<span><span class="co">#&gt; [5,] 1.692770 1.860875 2.270762 1.881794 0.000000 2.068663</span></span>
+<span><span class="co">#&gt; [6,] 2.736052 2.516199 3.513010 3.427599 2.068663 0.000000</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

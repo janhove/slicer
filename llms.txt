@@ -19,9 +19,13 @@ pak::pak("janhove/slicer")
 
 ## Use
 
-Please refer to the vignette for a brief tutorial on how to compute
-(sliced) Wasserstein distances and use them in a Gaussian process
-regression workflow.
+Please refer to the vignettes.
+
+## To do
+
+- Unit testing.
+- Vignette explaining (sliced) Wasserstein kernels and their use in
+  Gaussian process regression.
 
 # Package index
 
@@ -53,7 +57,7 @@ regression workflow.
 
 ### All vignettes
 
-- [(Sliced) Wasserstein - Gaussian process regression
-  workflow](https://janhove.github.io/slicer/articles/sliced-wasserstein-workflow.md):
+- [(Sliced) Wasserstein kernels and Gaussian process
+  regression](https://janhove.github.io/slicer/articles/sliced-wasserstein-workflow.md):
 - [How to compute Wasserstein and sliced Wasserstein
   distances](https://janhove.github.io/slicer/articles/wasserstein-computations.md):

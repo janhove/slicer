@@ -32,7 +32,7 @@ sliced Wasserstein distances."></head><body>
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/sliced-wasserstein-workflow.html">(Sliced) Wasserstein - Gaussian process regression workflow</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/sliced-wasserstein-workflow.html">(Sliced) Wasserstein kernels and Gaussian process regression</a></li>
     <li><a class="dropdown-item" href="../articles/wasserstein-computations.html">How to compute Wasserstein and sliced Wasserstein distances</a></li>
   </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -70,7 +70,7 @@ sliced Wasserstein distances.</p>
 <span>  A <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  p <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  keep_projections <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  average <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  test_idx <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -99,9 +99,10 @@ sliced Wasserstein distances.</p>
 <dd><p>If <code>TRUE</code>, show progress.</p></dd>
 
 
-<dt id="arg-keep-projections">keep_projections<a class="anchor" aria-label="anchor" href="#arg-keep-projections"></a></dt>
-<dd><p>If <code>TRUE</code>, the distance matrix for each projection direction is output.
-If <code>FALSE</code>, the distance matrices for the different projection directions are averaged.</p></dd>
+<dt id="arg-average">average<a class="anchor" aria-label="anchor" href="#arg-average"></a></dt>
+<dd><p>If <code>FALSE</code>, the distance matrix for each projection direction is output.
+If <code>TRUE</code>, the distance matrices for the different projection directions are averaged.
+See details below.</p></dd>
 
 
 <dt id="arg-test-idx">test_idx<a class="anchor" aria-label="anchor" href="#arg-test-idx"></a></dt>
@@ -119,26 +120,12 @@ otherwise, a matrix with the averages of the p-Wasserstein distances
 raised to the p-th power.</p>
     </div>
     <div class="section level2">
-    <h2 id="squared-wasserstein-distances">Squared Wasserstein distances<a class="anchor" aria-label="anchor" href="#squared-wasserstein-distances"></a></h2>
+    <h2 id="averaging">Averaging<a class="anchor" aria-label="anchor" href="#averaging"></a></h2>
 
 
 
-<p>The Wasserstein distance of order p = 2 as well as the square root of
-the Wasserstein distance of order p = 1 are Hilbertian distances between
-univariate probability distributions.
-Similarly, the sliced Wasserstein distance of order p = 2 as well as the
-square root of the sliced Wasserstein distance of order p = 1 are Hilbertian
-distances between multivariate distributions.
-We can therefore slot in these distances into the Gaussian radial basis
-function to obtain a valid kernel.
-Downstream, the workflow is simplified somewhat if <code>compute_all_distances()</code>
-return not the raw Wasserstein distances but the p-Wasserstein and p-sliced
-Wasserstein distances <em>raised to the p-th power</em>.
-This way, squared (sliced) 2-Wasserstein distances can directly be fed to,
-say, <code><a href="rbf.html">rbf()</a></code> with the default parameter setting <code>squared = TRUE</code>,
-as can the raw (sliced) 1-Wasserstein distances.</p>
-<p>Recall that the p-sliced Wasserstein distance is computed as the p-th root
-of the average of p-Wasserstein distances raised to the p-th power.</p>
+<p>When using <code>average = TRUE</code>, the distances are raised to the p-th power,
+averaged for each distribution pair, and then the p-th root is computed.</p>
     </div>
 
     <div class="section level2">
@@ -147,20 +134,18 @@ of the average of p-Wasserstein distances raised to the p-th power.</p>
 <span class="r-in"><span><span class="va">M2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">50</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">M3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">250</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Squared sliced Wasserstein of order 2</span></span></span>
+<span class="r-in"><span><span class="co"># Sliced Wasserstein of order 2</span></span></span>
 <span class="r-in"><span><span class="va">my_directions</span> <span class="op">&lt;-</span> <span class="fu"><a href="generate_directions.html">generate_directions</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">5</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">compute_all_distances</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">M1</span>, <span class="va">M2</span>, <span class="va">M3</span><span class="op">)</span>, <span class="va">my_directions</span>,</span></span>
-<span class="r-in"><span>  keep_projections <span class="op">=</span> <span class="cn">FALSE</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  average <span class="op">=</span> <span class="cn">TRUE</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           [,1]      [,2]      [,3]</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 0.0000000 0.3726307 0.2292539</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] 0.3726307 0.0000000 0.2697058</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [3,] 0.2292539 0.2697058 0.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 0.0000000 0.6104348 0.4788046</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] 0.6104348 0.0000000 0.5193320</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [3,] 0.4788046 0.5193320 0.0000000</span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># To obtain raw sliced Wasserstein of order 2, take square root.</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># (Raw) sliced Wasserstein of order 1</span></span></span>
+<span class="r-in"><span><span class="co"># Sliced Wasserstein of order 1</span></span></span>
 <span class="r-in"><span><span class="fu">compute_all_distances</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">M1</span>, <span class="va">M2</span>, <span class="va">M3</span><span class="op">)</span>, <span class="va">my_directions</span>, p <span class="op">=</span> <span class="fl">1</span>,</span></span>
-<span class="r-in"><span>  keep_projections <span class="op">=</span> <span class="cn">FALSE</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  average <span class="op">=</span> <span class="cn">TRUE</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           [,1]      [,2]      [,3]</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 0.0000000 0.4833153 0.3750074</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [2,] 0.4833153 0.0000000 0.4101071</span>
@@ -168,22 +153,22 @@ of the average of p-Wasserstein distances raised to the p-th power.</p>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Marginal squared 2-Wasserstein distances:</span></span></span>
 <span class="r-in"><span><span class="va">marginal_wass</span> <span class="op">&lt;-</span> <span class="fu">compute_all_distances</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">M1</span>, <span class="va">M2</span>, <span class="va">M3</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">5</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  keep_projections <span class="op">=</span> <span class="cn">TRUE</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  average <span class="op">=</span> <span class="cn">FALSE</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">marginal_wass</span><span class="op">[[</span><span class="fl">3</span><span class="op">]</span><span class="op">]</span> <span class="co"># along third dimension</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>            [,1]      [,2]       [,3]</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 0.00000000 0.4029302 0.09973663</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] 0.40293015 0.0000000 0.35042965</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [3,] 0.09973663 0.3504296 0.00000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           [,1]      [,2]      [,3]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 0.0000000 0.6347678 0.3158111</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] 0.6347678 0.0000000 0.5919710</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [3,] 0.3158111 0.5919710 0.0000000</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Reweight projection directions (shear transformation)</span></span></span>
 <span class="r-in"><span><span class="va">A</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">0.5</span>, <span class="fl">3</span>, <span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">shear_wass</span> <span class="op">&lt;-</span> <span class="fu">compute_all_distances</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">M1</span>, <span class="va">M2</span>, <span class="va">M3</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">5</span><span class="op">)</span>, A <span class="op">=</span> <span class="va">A</span>,</span></span>
-<span class="r-in"><span>  keep_projections <span class="op">=</span> <span class="cn">TRUE</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  average <span class="op">=</span> <span class="cn">FALSE</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">shear_wass</span><span class="op">[[</span><span class="fl">3</span><span class="op">]</span><span class="op">]</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           [,1]     [,2]      [,3]</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 0.0000000 3.626371 0.8976297</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] 3.6263714 0.000000 3.1538668</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [3,] 0.8976297 3.153867 0.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 0.0000000 1.904303 0.9474332</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] 1.9043034 0.000000 1.7759130</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [3,] 0.9474332 1.775913 0.0000000</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
