@@ -29,6 +29,9 @@
 #' first_two_axes <- cardinal_axes[1:2, ]
 #' sliced_wasserstein(M1, M2, thetas = first_two_axes)
 sliced_wasserstein <- function(x, y, p = 2, thetas = NULL, L = 50, seed = NULL) {
+  if (is.vector(x)) x <- matrix(x, ncol = 1)
+  if (is.vector(y)) y <- matrix(y, ncol = 1)
+
   if (ncol(y) != ncol(x)) {
     stop("x and y should have the same number of columns.")
   }
@@ -57,15 +60,36 @@ sliced_wasserstein <- function(x, y, p = 2, thetas = NULL, L = 50, seed = NULL) 
 }
 #' Pairwise Wasserstein Distances Along Projection Directions Between Several Empirical Distributions
 #'
-#' This function computes the squared 2-Wasserstein distances between the projections
+#' This function computes Wasserstein distances between the projections
 #' of several empirical directions along specified projection directions.
 #' The projection directions can optionally be transformed by means of a linear map.
-#' The functions can output the squared distances along each projection direction,
-#' or the squared distances averaged over projection directions.
+#' The functions can output the distances along each projection direction,
+#' or the distances averaged over projection directions.
+#'
+#' @section Squared Wasserstein distances:
+#'
+#' The Wasserstein distance of order p = 2 as well as the square root of
+#' the Wasserstein distance of order p = 1 are Hilbertian distances between
+#' univariate probability distributions.
+#' Similarly, the sliced Wasserstein distance of order p = 2 as well as the
+#' square root of the sliced Wasserstein distance of order p = 1 are Hilbertian
+#' distances between multivariate distributions.
+#' We can therefore slot in these distances into the Gaussian radial basis
+#' function to obtain a valid kernel.
+#' Downstream, the workflow is simplified somewhat if `compute_all_distances()`
+#' return not the raw Wasserstein distances but the p-Wasserstein and p-sliced
+#' Wasserstein distances _raised to the p-th power_.
+#' This way, squared (sliced) 2-Wasserstein distances can directly be fed to,
+#' say, `rbf()` with the default parameter setting `squared = TRUE`,
+#' as can the raw (sliced) 1-Wasserstein distances.
+#'
+#' Recall that the p-sliced Wasserstein distance is computed as the p-th root
+#' of the average of p-Wasserstein distances raised to the p-th power.
 #'
 #' @param distributions A list of matrices representing empirical distributions.
 #' @param thetas A matrix, each row of which represents a projection direction.
 #' @param A Optionally, a matrix used to transform each projection direction.
+#' @param p Order of the Wasserstein distances. Defaults to 2.
 #' @param verbose If `TRUE`, show progress.
 #' @param keep_projections If `TRUE`, the distance matrix for each projection direction is output.
 #'    If `FALSE`, the distance matrices for the different projection directions are averaged.
@@ -73,46 +97,63 @@ sliced_wasserstein <- function(x, y, p = 2, thetas = NULL, L = 50, seed = NULL) 
 #'    distance computations between distribution pairs whose indices both occur
 #'    in this vector.
 #'
-#' @return If `keep_projections = TRUE`, a list of squared-distance matrices,
-#'  one for each projection direction; otherwise, a matrix with the averaged
-#'  squared distances.
+#' @return If `keep_projections = TRUE`, a list of matrices containing
+#'  p-Wasserstein distances raised to the p-th power,
+#'  one for each projection direction;
+#'  otherwise, a matrix with the averages of the p-Wasserstein distances
+#'  raised to the p-th power.
 #' @export
 #'
 #' @examples
 #' M1 <- matrix(rnorm(50), ncol = 5)
 #' M2 <- matrix(rnorm(50), ncol = 5)
 #' M3 <- matrix(rnorm(250), ncol = 5)
-#' # Sliced Wasserstein:
+#'
+#' # Squared sliced Wasserstein of order 2
 #' my_directions <- generate_directions(20, 5)
 #' compute_all_distances(list(M1, M2, M3), my_directions,
 #'   keep_projections = FALSE, verbose = FALSE)
-#' # Marginal Wasserstein distances:
+#'
+#' # To obtain raw sliced Wasserstein of order 2, take square root.
+#'
+#' # (Raw) sliced Wasserstein of order 1
+#' compute_all_distances(list(M1, M2, M3), my_directions, p = 1,
+#'   keep_projections = FALSE, verbose = FALSE)
+#'
+#' # Marginal squared 2-Wasserstein distances:
 #' marginal_wass <- compute_all_distances(list(M1, M2, M3), diag(1, 5),
 #'   keep_projections = TRUE, verbose = FALSE)
 #' marginal_wass[[3]] # along third dimension
-#' # Reweight projection directions
+#'
+#' # Reweight projection directions (shear transformation)
 #' A <- diag(c(4, 0.5, 3, 2, 1))
 #' shear_wass <- compute_all_distances(list(M1, M2, M3), diag(1, 5), A = A,
 #'   keep_projections = TRUE, verbose = FALSE)
 #' shear_wass[[3]]
 compute_all_distances <- function(
-    distributions, thetas, A = NULL, verbose = TRUE, keep_projections = TRUE,
-    test_idx = NULL
+    distributions, thetas = NULL, A = NULL, p = 2, verbose = TRUE,
+    keep_projections = TRUE, test_idx = NULL
 ) {
+  if (is.null(thetas)) {
+    if (verbose) message("No projection directions (thetas) supplied. Assuming univariate distributions.")
+    thetas <- matrix(1, 1, 1)
+    keep_projections <- FALSE
+  }
+
   d <- ncol(thetas)
   L <- nrow(thetas)
   N <- length(distributions)
 
   if (!is.null(A)) {
-    if (verbose) message("Transforming projection directions...")
+    if (verbose) message("Transforming...")
     thetas <- thetas %*% A
   }
 
-  if (verbose) message("Projecting distributions...")
+  if (verbose && d*L > 1) message("Projecting...")
   projections <- lapply(distributions, project_and_sort, thetas)
 
-  if (verbose) {
-    message("Computing sliced Wasserstein distances...")
+  if (verbose && d*L > 1) {
+    message("Computing distances...")
     pb <- utils::txtProgressBar(min = 0, max = L, style = 3)
   }
 
@@ -128,13 +169,13 @@ compute_all_distances <- function(
           next
         }
         current_distance <- nw_corner_distance(projections[[i]][, ell],
-          projections[[j]][, ell], presorted = TRUE)^2
+          projections[[j]][, ell], p = p, presorted = TRUE)^p
         distance_matrix[i, j] <- current_distance
         distance_matrix[j, i] <- current_distance
       }
     }
     distance_list[[ell]] <- distance_matrix
-    if (verbose) utils::setTxtProgressBar(pb, ell)
+    if (verbose && d*L > 1) utils::setTxtProgressBar(pb, ell)
   }
   if (verbose) cat("\n")
 
