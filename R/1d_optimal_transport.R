@@ -18,5 +18,6 @@
 #' nw_corner_distance(x, y)
 #' nw_corner_distance(sort(x), sort(y), presorted = TRUE)
 nw_corner_distance <- function(x, y, presorted = FALSE, p = 2, eps = sqrt(.Machine$double.eps)) {
+  if (p < 1) warning("Order (p) should be at least 1 for a valid Wasserstein distance.")
   nw_corner_distance_cpp(x, y, presorted = presorted, p = p, eps = eps)
 }
