@@ -119,6 +119,13 @@ find_median <- function(M) {
 #' directions <- generate_directions(50, 5)
 #' project_and_sort(my_data, directions)
 project_and_sort <- function(M, thetas) {
+  if (is.vector(M)) M <- matrix(M, ncol = 1)
+  d_M <- ncol(M)
+  d_thetas <- nrow(thetas)
+  if (d_M != d_thetas) {
+    stop(sprintf("One of the input distributions is %d-dimensional, but %d-dimensional distributions are expected.",
+                 d_M, d_thetas))
+  }
   thetas <- t(thetas)
   apply(M %*% thetas, 2, sort)
 }
