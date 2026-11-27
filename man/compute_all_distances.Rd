@@ -45,6 +45,9 @@ of several empirical directions along specified projection directions.
 The projection directions can optionally be transformed by means of a linear map.
 The functions can output the distances along each projection direction,
 or the distances averaged over projection directions.
+If the projection directions are uniformly sampled from the unit sphere
+(using \code{generate_directions()}), the averaged version estimates the
+sliced Wasserstein distances.
 }
 \section{Squared Wasserstein distances}{
 
