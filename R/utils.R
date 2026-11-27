@@ -121,13 +121,12 @@ find_median <- function(M) {
 project_and_sort <- function(M, thetas) {
   if (is.vector(M)) M <- matrix(M, ncol = 1)
   d_M <- ncol(M)
-  d_thetas <- nrow(thetas)
+  d_thetas <- ncol(thetas)
   if (d_M != d_thetas) {
     stop(sprintf("One of the input distributions is %d-dimensional, but %d-dimensional distributions are expected.",
                  d_M, d_thetas))
   }
-  thetas <- t(thetas)
-  apply(M %*% thetas, 2, sort)
+  apply(tcrossprod(M, thetas), 2, sort)
 }
 #' Compute the Trace of a Matrix
 #'
