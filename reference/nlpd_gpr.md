@@ -58,15 +58,17 @@ fit <- fit_gpr(D2, seq_len(N1), N1 + seq_len(N2), y_train, y_test,
 #> Optimum set at 65.1049.
 #> Hyperparameter search 2 of 20.
 #> Hyperparameter search 3 of 20.
+#> Current optimum improved from 65.1049 to 65.1049.
 #> Hyperparameter search 4 of 20.
+#> Current optimum improved from 65.1049 to 65.1049.
 #> Hyperparameter search 5 of 20.
 #> Hyperparameter search 6 of 20.
 #> Hyperparameter search 7 of 20.
 #> Hyperparameter search 8 of 20.
 #> Hyperparameter search 9 of 20.
 #> Hyperparameter search 10 of 20.
-#> Current optimum improved from 65.1049 to 65.1049.
 #> Hyperparameter search 11 of 20.
+#> Current optimum improved from 65.1049 to 40.4504.
 #> Hyperparameter search 12 of 20.
 #> Hyperparameter search 13 of 20.
 #> Hyperparameter search 14 of 20.
@@ -78,12 +80,14 @@ fit <- fit_gpr(D2, seq_len(N1), N1 + seq_len(N2), y_train, y_test,
 #> Hyperparameter search 20 of 20.
 # noisy outcome
 nlpd_gpr(fit, y_test + rnorm(N2, sd = 0.5))
-#> [1] 1.424344
+#> [1] 1.13033
 #> attr(,"jitter_used")
 #> [1] 0
 # clean outcome
 nlpd_gpr(fit, y_test, add_noise = FALSE)
-#> [1] 1.249706
+#> Warning: Covariance matrix not positive definite. Trying jitter escalation.
+#> Cholesky succeeded with jitter = 1e-10.
+#> [1] -3.764511
 #> attr(,"jitter_used")
-#> [1] 0
+#> [1] 1e-10
 ```
