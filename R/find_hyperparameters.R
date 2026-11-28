@@ -65,6 +65,7 @@ find_hyperparameters <- function(
   last_a <- NULL
 
   # Auxiliary functions --------------------------------------------------------
+  # todo: Factor out
   update_cache <- function(log_params) {
     if (identical(log_params, last_log_params)) return(invisible(NULL))
     va_vec <- exp(log_params[1:L])
@@ -87,13 +88,15 @@ find_hyperparameters <- function(
     last_log_params <<- log_params
   }
 
+  # todo: Factor out
   nll <- function(log_params) {
     update_cache(log_params)
     if (is.null(last_U)) return(Inf)
     drop(0.5 * crossprod(y_train, last_a) + sum(log(diag(last_U))) + n/2 * log(2 * pi))
   }
 
-  # Only used when using RBF. May want to generalise in future.
+  # Currently only used when using RBF. May want to generalise in future.
+  # todo: Factor out, generalise
   gradient <- function(log_params) {
     update_cache(log_params)
     if (is.null(last_U)) return(rep(Inf, 2 * L + 1))
@@ -107,9 +110,12 @@ find_hyperparameters <- function(
     jacobian <- numeric(2*L + 1)
 
     for (ell in 1:L) {
-      DK <- va_vec[[ell]] * last_K_list[[ell]]
-      jacobian[[ell]] <- 0.5 * sum(M * DK)
-      jacobian[[L + ell]] <- 0.5 * sum(M * DK * D[[ell]]^2) / ls_vec[[ell]]^2
+      # MDK <- M * va_vec[[ell]] * last_K_list[[ell]]
+      MDK <- M * last_K_list[[ell]]
+      jacobian[[ell]] <- 0.5 * sum(MDK)
+      # todo: Handle squaring / not squaring better to save costs
+      if (!squared) jacobian[[L + ell]] <- 0.5 * sum(MDK * D[[ell]]^2) / ls_vec[[ell]]^2
+      if (squared)  jacobian[[L + ell]] <- 0.5 * sum(MDK * D[[ell]]^2) / ls_vec[[ell]]^2
     }
     jacobian[[2*L + 1]] <- 0.5 * lambda2 * sum(diag(M))
 
@@ -126,17 +132,16 @@ find_hyperparameters <- function(
               length_scale = log(meds) + stats::runif(L, log(0.1), log(10)),
               lambda2 = log_yvar + stats::runif(1, -10, -2))
 
-    if (use_gradient) {
-      fit <- tryCatch(
-        stats::optim(init, nll, gr = gradient, method = "BFGS", control = ctrl),
-        error = function(e) NULL
-      )
-    } else {
-      fit <- tryCatch(
-        stats::optim(init, nll, method = "BFGS", control = ctrl),
-        error = function(e) NULL
-      )
-    }
+    fit <- tryCatch(
+      stats::optim(
+        init,
+        nll,
+        gr = if (use_gradient) gradient else NULL,
+        method = "BFGS",
+        control = ctrl
+        ),
+      error = function(e) NULL
+    )
 
     if (!is.null(fit) && (is.null(best) || fit$value < best$value)) {
       if (verbose && !is.null(best)) {
